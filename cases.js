@@ -16,14 +16,15 @@ const inVm = (s) => ["local-vm", "remote-vm"].includes(s.loc);
 // in de VM en in een dichtgezette devcontainer niet.
 const devLogin = (s) => !["remote-vm", "dc-closed"].includes(s.loc);
 // Ronde 1: een sandbox, met of zonder eigen profiel.
-const sbx = (s) => ["h-sandbox", "h-profile", "h-autoreview"].includes(s.perm);
+const hasProfile = (s) => ["h-profile-gpt", "h-profile", "h-profile-self"].includes(s.perm);
+const sbx = (s) => hasProfile(s) || s.perm === "h-autoreview";
 // Ronde 1: harnassen waar niemand (of het model zelf) een push tegenhoudt.
 const noAsk = (s) => ["h-yolo", "h-allow", "h-autosafe"].includes(s.perm);
 // Waar staat de agent in ronde 1, als hij niet bij de laptop kan?
 const awayName = (s) => (s.loc === "remote-vm" ? "de VM" : "de dichtgezette devcontainer");
 // Beide Qwen-opties zijn hetzelfde Chinese model (Alibaba): op de servers van Rijkswaterstaat, of kleiner op je laptop.
 const isQwen = (m) => ["qwen-werk", "local-model"].includes(m);
-const sandboxHarness = (h) => ["h-codex", "h-codex-profile", "h-codex-home", "h-codex-auto", "h-qwencode", "h-claude", "h-openhands"].includes(h);
+const sandboxHarness = (h) => ["h-codex", "h-codex-profile", "h-codex-auto", "h-qwencode", "h-claude", "h-openhands"].includes(h);
 const qwenNews = "Qwen is een Chinees model. In onderzoek van Cohere (oktober 2026) probeerde Qwen 3.8 ongevraagd iets te uploaden naar een server van Alibaba in Beijing; de sandbox hield het tegen.";
 
 window.CASES = [
@@ -42,12 +43,12 @@ window.CASES = [
     ],
     task: "Hoe werken de agent en de ontwikkelaar samen met GitLab? Kies waar de agent draait, met welke inlog hij bij GitLab komt, hoe het harnas om toestemming vraagt, welk model hij gebruikt, wie er pullt en pusht, wie de MR merget, en wat er draait als er gepusht wordt.",
     facts: [
-      "Standaard werkt de agent in de terminal van de ontwikkelaar, op diens laptop: hij schrijft code en draait commando's. Een VM van Rijkswaterstaat of een devcontainer kan ook.",
+      "Startpunt: Codex draait gewoon in de terminal van de ontwikkelaar, op diens laptop: de agent schrijft code en draait commando's. Een VM van Rijkswaterstaat of een devcontainer kan ook.",
       "Een devcontainer of een sandboxprofiel kun je opzetten samen met GPT-6.1 in Codex.",
-      "Automatisch goedkeuren kan op twee manieren: het model beslist zelf wat veilig is (Cline), of een aparte reviewer-agent beslist (Codex, alleen met een model van OpenAI).",
-      "Het model: Codex Enterprise van OpenAI (in de cloud) is het slimst en het snelst. Qwen op de servers van Rijkswaterstaat is minder slim en alleen bereikbaar op het netwerk van Rijkswaterstaat, dus niet thuis. Qwen is een Chinees model.",
+      "Automatisch goedkeuren kan op twee manieren: het model beslist zelf wat veilig is, of een aparte reviewer-agent beslist (in Codex, alleen met modellen van OpenAI).",
+      "Het model: de GPT-modellen van Azure OpenAI (in de cloud van Microsoft) zijn het slimst en het snelst. Qwen op de servers van Rijkswaterstaat is minder slim en alleen bereikbaar op het netwerk van Rijkswaterstaat, dus niet thuis. Qwen is een Chinees model.",
       "Het harnas is het programma om het model heen. Het voert de commando's uit en kan om toestemming vragen.",
-      "Een push start automatisch de pipeline. Er is één runner, voor alle branches, met internet.",
+      "Een push start automatisch de pipeline. Er is één omgeving voor de runners, voor alle branches, en die heeft nu internet.",
     ],
     zones: {
       gitlab: "GitLab",
@@ -59,7 +60,7 @@ window.CASES = [
     },
     zoneNotes: {
       vm: "Een extra laag om het harnas heen. Of toch gewoon de laptop.",
-      harness: "Het programma om het model heen: voert de commando's uit en vraagt om toestemming.",
+      harness: "Startpunt: Codex, gewoon in de terminal. Het harnas voert de commando's uit en vraagt om toestemming.",
       agent: "Leest issues, schrijft code en draait de tests.",
       mens: "Geeft de opdracht, kijkt mee en beslist.",
       model: "Krijgt alles wat het harnas leest, en bedenkt wat er moet gebeuren.",
@@ -77,40 +78,42 @@ window.CASES = [
     ],
     blocks: [
       // loc
-      { id: "laptop", slot: "loc", title: "Op de laptop, in de terminal van de ontwikkelaar", desc: "Alles staat klaar: de repo, de tests.", detail: "", v: 3, s: 5 },
+      { id: "laptop", slot: "loc", title: "Op de laptop, in de terminal van de ontwikkelaar", desc: "", detail: "", v: 3, s: 5 },
       { id: "remote-vm", slot: "loc", title: "In een VM van Rijkswaterstaat", desc: "De agent draait er als eigen gebruiker, met alleen de repo.", detail: "Kost geld per maand. Bereikt ook thuis Qwen op de servers van Rijkswaterstaat.", v: 5, s: 3.5 },
       { id: "devcontainer", slot: "loc", title: "Devcontainer in VS Code", desc: "Eén klik, en je git-inlog werkt meteen.", detail: "Draait op de laptop, met alleen de projectmap.", v: 3, s: 4.5 },
       { id: "dc-closed", slot: "loc", title: "Devcontainer, dichtgezet (opgezet samen met GPT-6.1)", desc: "Zonder je git-inlog, alleen de projectmap, netwerk alleen naar GitLab en het model.", detail: "Eén keer goed opzetten. Draait op de laptop.", v: 4, s: 4 },
       // auth
-      { id: "a-pat", slot: "auth", title: "Het token van de ontwikkelaar", desc: "Zijn persoonlijke token, met al zijn rechten.", detail: "Werkt meteen.", v: 2, s: 5 },
-      { id: "a-credman", slot: "auth", title: "Een credential manager", desc: "Het token van de ontwikkelaar, in de keychain in plaats van in een bestand.", detail: "", v: 3, s: 4.5 },
-      { id: "a-bot", slot: "auth", title: "Een eigen token voor de agent", desc: "Alleen deze repo, alleen pullen, naar een branch pushen en een MR openen. Verloopt vanzelf.", detail: "", v: 4, s: 3.5 },
-      { id: "a-none", slot: "auth", title: "Geen inlog", desc: "De agent komt niet bij GitLab. De ontwikkelaar plakt het issue en maakt de MR.", detail: "", v: 5, s: 3 },
+      { id: "a-pat", slot: "auth", title: "Het token van de ontwikkelaar", desc: "", detail: "", v: 2, s: 5 },
+      { id: "a-credman", slot: "auth", title: "Het token van de ontwikkelaar, in een keyvault", desc: "", detail: "", v: 3, s: 4.5 },
+      { id: "a-bot", slot: "auth", title: "Een scoped token voor de agent", desc: "Alleen deze repo, alleen pullen, naar een branch pushen en een MR openen. Verloopt vanzelf.", detail: "", v: 4, s: 3.5 },
+      { id: "a-none", slot: "auth", title: "Geen inlog", desc: "De agent komt niet bij GitLab. De ontwikkelaar plakt het issue in de chat met de agent en maakt de MR.", detail: "", v: 5, s: 3 },
       // perm
       { id: "h-yolo", slot: "perm", title: "Alles mag, hij vraagt niets", desc: "Geen sandbox en geen vragen.", detail: "", v: 1, s: 5 },
-      { id: "h-askall", slot: "perm", title: "Hij vraagt bij elk commando", desc: "De ontwikkelaar keurt elk commando goed.", detail: "Geen sandbox.", v: 4, s: 1 },
-      { id: "h-allow", slot: "perm", title: "Alleen git push vraagt toestemming", desc: "Een regel in het harnas: voor ‘git push’ vraagt hij, de rest mag.", detail: "", v: 2, s: 4.5 },
-      { id: "h-sandbox", slot: "perm", title: "Sandbox: hij vraagt alleen als hij eruit wil", desc: "Werken in de repo mag, zonder netwerk. Voor alles daarbuiten, ook git, vraagt hij.", detail: "", v: 4, s: 3.5 },
-      { id: "h-profile", slot: "perm", title: "Sandbox met een eigen profiel (opgesteld samen met GPT-6.1)", desc: "Als de sandbox, plus een profiel dat de bekende plekken met sleutels en tokens afschermt.", detail: "Eén keer goed opstellen.", v: 4.5, s: 4 },
-      { id: "h-autosafe", slot: "perm", title: "Automatisch goedkeuren: het model beslist zelf wat veilig is", desc: "Geen sandbox. Het model bepaalt zelf welke commando's veilig zijn, en vraagt alleen bij de rest.", detail: "Zoals ‘Execute safe commands’ in Cline.", v: 2, s: 5 },
-      { id: "h-autoreview", slot: "perm", title: "Sandbox met auto-review: een aparte reviewer beslist als hij eruit wil", desc: "Als de sandbox, maar een aparte reviewer-agent keurt goed in plaats van de ontwikkelaar.", detail: "Codex: ‘Approve for me’. Werkt alleen met een model van OpenAI.", v: 3.5, s: 4.5 },
+      { id: "h-askall", slot: "perm", title: "Hij vraagt bij elk commando", desc: "", detail: "Geen sandbox.", v: 4, s: 1 },
+      { id: "h-allow", slot: "perm", title: "Alleen git push vraagt toestemming", desc: "", detail: "", v: 2, s: 4.5 },
+      { id: "h-profile-gpt", slot: "perm", title: "Sandbox met profiel, helemaal opgezet door GPT-6.1", desc: "Werken in de repo mag, zonder netwerk; voor alles daarbuiten, ook git, vraagt hij. Het profiel schermt sleutels en tokens af.", detail: "", v: 4, s: 4.5 },
+      { id: "h-profile", slot: "perm", title: "Sandbox met profiel, opgezet met GPT-6.1 en goed gecheckt door de ontwikkelaar", desc: "Werken in de repo mag, zonder netwerk; voor alles daarbuiten, ook git, vraagt hij. Het profiel schermt sleutels en tokens af.", detail: "", v: 4.5, s: 4 },
+      { id: "h-profile-self", slot: "perm", title: "Sandbox met profiel, helemaal zelf opgezet door de ontwikkelaar", desc: "Werken in de repo mag, zonder netwerk; voor alles daarbuiten, ook git, vraagt hij. Het profiel schermt sleutels en tokens af.", detail: "", v: 4.5, s: 2.5 },
+      { id: "h-autosafe", slot: "perm", title: "Automatisch goedkeuren: het model beslist zelf wat veilig is", desc: "Geen sandbox. Het model bepaalt zelf welke commando's veilig zijn, en vraagt alleen bij de rest.", detail: "", v: 2, s: 5 },
+      { id: "h-autoreview", slot: "perm", title: "Sandbox met auto-review: een aparte reviewer beslist als hij eruit wil", desc: "Een sandbox zonder eigen profiel. Wil hij eruit, dan keurt een aparte reviewer-agent goed in plaats van de ontwikkelaar.", detail: "Codex: ‘Approve for me’. Werkt alleen met modellen van OpenAI, niet met Qwen.", v: 3.5, s: 4.5 },
       // git
-      { id: "g-agent", slot: "git", title: "De agent pullt, commit en pusht", desc: "Hij doet alles in git zelf.", detail: "", v: 2, s: 5 },
-      { id: "g-pull", slot: "git", title: "De agent pullt en commit, de ontwikkelaar pusht", desc: "Pas bij een push gaat er iets naar GitLab.", detail: "", v: 4, s: 4 },
-      { id: "g-dev", slot: "git", title: "Alleen de ontwikkelaar pullt en pusht", desc: "De agent werkt alleen in de bestanden.", detail: "", v: 5, s: 3.5 },
-      { id: "m-dev", slot: "merge", title: "De ontwikkelaar checkt de diff en merget", desc: "Hij leest de MR in GitLab voordat die op main komt.", detail: "Eén keer per MR.", v: 4, s: 4 },
+      { id: "g-agent", slot: "git", title: "De agent pullt, commit en pusht", desc: "", detail: "", v: 2, s: 5 },
+      { id: "g-pull", slot: "git", title: "De agent pullt en commit, de ontwikkelaar pusht", desc: "", detail: "", v: 4, s: 4 },
+      { id: "g-dev", slot: "git", title: "Alleen de ontwikkelaar pullt en pusht", desc: "", detail: "", v: 5, s: 3.5 },
+      { id: "m-dev", slot: "merge", title: "De ontwikkelaar checkt de diff en merget", desc: "", detail: "", v: 4, s: 4 },
       { id: "m-agent", slot: "merge", title: "De agent merget zelf", desc: "Als de pipeline groen is, merget de agent zijn eigen MR.", detail: "", v: 1, s: 5 },
       // ci
-      { id: "ci-open", slot: "ci", title: "De pipeline, op een runner met internet", desc: "Elke push start de pipeline, met internet.", detail: "", v: 2, s: 5 },
+      { id: "ci-open", slot: "ci", title: "De pipeline zoals nu: de runneromgeving met internet", desc: "", detail: "", v: 2, s: 5 },
       { id: "ci-dev", slot: "ci", title: "Niets van de agent: die kan niet bij git", desc: "Alleen de ontwikkelaar pusht, dus de pipeline draait zijn werk.", detail: "", v: 3, s: 5 },
       { id: "ci-review", slot: "ci", title: "Wat de ontwikkelaar eerst heeft gelezen", desc: "Hij leest alles voordat hij pusht, ook de tests.", detail: "", v: 4, s: 2 },
-      { id: "ci-noinet", slot: "ci", title: "De runner heeft alleen toegang tot pakketten in de centrale Artifactory", desc: "Elke push start de pipeline, maar zonder internet.", detail: "Eenmalig inrichten met de beheerders.", v: 5, s: 4 },
+      { id: "ci-noinet", slot: "ci", title: "De runneromgeving zonder internet, met images uit de centrale image registry", desc: "Elke push start de pipeline, maar zonder internet. Wat de tests nodig hebben, zit al in het image.", detail: "Eenmalig inrichten met de beheerders. Er is één runneromgeving: het geldt voor alle pipelines.", v: 5, s: 4 },
       // devtok: het eigen token van de ontwikkelaar, op zijn laptop
-      { id: "dt-credman", slot: "devtok", title: "Versleuteld, in de sleutelhanger van de laptop", desc: "Git haalt het op als het nodig is.", detail: "", v: 3, s: 4.5 },
-      { id: "dt-plain", slot: "devtok", title: "Als platte tekst in een bestand", desc: "Het token staat leesbaar in ~/.git-credentials.", detail: "Eén keer intypen, daarna werkt het altijd.", v: 2, s: 5 },
-      { id: "dt-cache", slot: "devtok", title: "Eén keer inloggen, daarna een tijdje onthouden", desc: "Git onthoudt het token een kwartier in het geheugen.", detail: "", v: 3, s: 4 },
+      { id: "dt-credman", slot: "devtok", title: "In een keyvault", desc: "", detail: "", v: 3, s: 4.5 },
+      { id: "dt-plain", slot: "devtok", title: "Als platte tekst in een bestand", desc: "", detail: "", v: 2, s: 5 },
+      { id: "dt-oauth", slot: "devtok", title: "Een OAuth-token", desc: "", detail: "", v: 3, s: 4 },
+      { id: "dt-none", slot: "devtok", title: "Geen eigen token", desc: "", detail: "", v: 5, s: 3 },
       // model
-      { id: "codex", slot: "model", title: "Codex Enterprise van OpenAI (cloud)", desc: "Het slimst en het snelst.", detail: "Alles wat de agent leest, gaat naar de cloud van OpenAI.", v: 4, s: 5 },
+      { id: "codex", slot: "model", title: "GPT-modellen via Azure OpenAI (cloud van Microsoft)", desc: "Het slimst en het snelst.", detail: "Alles wat de agent leest, gaat naar de cloud van Microsoft.", v: 4, s: 5 },
       { id: "qwen-werk", slot: "model", title: "Qwen op de servers van Rijkswaterstaat", desc: "Alles blijft bij Rijkswaterstaat. Thuis niet bereikbaar vanaf de laptop, wel vanuit de VM.", detail: "Minder slim en trager. Een Chinees model.", v: 4, s: 3.5 },
       { id: "local-model", slot: "model", title: "Een eigen model op je laptop", desc: "Een kleinere Qwen. Werkt ook thuis.", detail: "Het minst slim. Ook Chinees.", v: 4, s: 1.5 },
     ],
@@ -138,34 +141,40 @@ window.CASES = [
       (s) => s.perm === "h-allow" && { type: "insight", cap: { v: 2 }, text: "Een regel op de tekst van een commando is geen slot: er zijn genoeg andere manieren om te pushen, en die gaan er gewoon doorheen." },
       (s) => s.perm === "h-autosafe" && { type: "risk", cap: { v: 2 }, text: "Het model dat het werk doet, beslist zelf wat veilig is. Een verborgen instructie in een issue stuurt juist dat model. En zonder sandbox draait alles als de ontwikkelaar, met netwerk." },
       (s) => s.perm === "h-autoreview" && isQwen(s.model) && { type: "risk", adj: { s: -2 }, text: "Met Qwen werkt auto-review niet: Codex vraagt om een eigen reviewmodel van OpenAI, dat er dan niet is, en weigert alles buiten de sandbox (getest)." },
-      (s) => s.perm === "h-autoreview" && !isQwen(s.model) && { type: "insight", text: "Binnen de sandbox verandert niets. Wil de agent eruit, dan beslist een reviewmodel van OpenAI in plaats van de ontwikkelaar. Dat kan zich vergissen of misleid worden, en wat het goedkeurt, draait buiten de sandbox. Wel hoeft niemand steeds ‘ja’ te klikken." },
+      (s) => s.perm === "h-autoreview" && !isQwen(s.model) && { type: "insight", text: "Binnen de sandbox verandert niets. Wil de agent eruit, dan beslist een apart reviewmodel in plaats van de ontwikkelaar. Dat kan zich vergissen of misleid worden, en wat het goedkeurt, draait buiten de sandbox. Wel hoeft niemand steeds ‘ja’ te klikken." },
       (s) => sbx(s) && s.loc === "remote-vm" && { type: "good", adj: { v: 0.5 }, text: "Twee lagen: de VM schermt de laptop af, de sandbox het netwerk." },
-      (s) => ["h-sandbox", "h-autoreview"].includes(s.perm) && s.loc === "laptop" && { type: "insight", cap: { v: 3.5 }, text: "De sandbox beperkt schrijven en netwerk, niet lezen. Op de laptop kan de agent sleutels en tokens lezen, en wat hij leest, gaat naar het model." },
-      (s) => s.perm === "h-profile" && (s.loc === "laptop"
-        ? { type: "good", cap: { v: 4 }, text: "Het profiel schermt de bekende plekken met sleutels en tokens af (getest). Wat niet op de lijst staat, kan de agent nog lezen. Het profiel zelf kan hij niet aanpassen." }
+      (s) => s.perm === "h-autoreview" && s.loc === "laptop" && { type: "insight", cap: { v: 3.5 }, text: "De sandbox beperkt schrijven en netwerk, niet lezen. Op de laptop kan de agent sleutels en tokens lezen, en wat hij leest, gaat naar het model." },
+      (s) => hasProfile(s) && (s.loc === "laptop"
+        ? (s.perm === "h-profile-gpt"
+          ? { type: "insight", cap: { v: 3.5 }, text: "Het profiel schermt de bekende plekken met sleutels en tokens af. Maar niemand heeft nagekeken wat GPT-6.1 erin zette: mist het een plek, dan merkt niemand het. Het profiel zelf kan de agent niet aanpassen." }
+          : { type: "good", cap: { v: 4 }, text: "Het profiel schermt de bekende plekken met sleutels en tokens af (getest). Wat niet op de lijst staat, kan de agent nog lezen. Het profiel zelf kan hij niet aanpassen." })
         : s.loc && { type: "insight", text: "Het profiel schermt paden af. " + (s.loc === "remote-vm" ? "In de VM staat er weinig om af te schermen." : "In de devcontainer ziet de agent al alleen de projectmap.") }),
+      (s) => s.perm === "h-profile-self" && { type: "insight", text: "Net zo goed als een nagekeken profiel van GPT-6.1, maar het kost de ontwikkelaar veel meer tijd." },
       // het eigen token van de ontwikkelaar
       (s) => s.devtok === "dt-plain" && (s.loc && devLogin(s)
-        ? (s.perm === "h-profile" && s.loc === "laptop"
+        ? (hasProfile(s) && s.loc === "laptop"
           ? { type: "insight", adj: { v: -0.5 }, text: "Staat het bestand in het profiel, dan kan de agent het niet lezen. Elk ander programma op de laptop wel." }
           : { type: "risk", cap: { v: 2 }, text: "Het token staat leesbaar in een bestand. De agent draait als de ontwikkelaar en leest het gewoon" + (s.loc === "devcontainer" ? ", ook in de devcontainer." : ", ook in de sandbox.") + " Dan staat het bij het model." })
         : s.loc && { type: "insight", adj: { v: -0.5 }, text: "De agent in " + awayName(s) + " kan niet bij dit bestand. Elk ander programma op de laptop wel." }),
       (s) => s.devtok === "dt-credman" && (s.loc && devLogin(s)
         ? (sbx(s) && s.loc === "laptop"
-          ? { type: "good", ignoreMin: ["devtok"], text: "In de sandbox kan de agent het token niet uit de sleutelhanger halen (getest op een Mac). Buiten de sandbox wel: een commando dat " + (s.perm === "h-autoreview" ? "de reviewer" : "de ontwikkelaar") + " goedkeurt, kan er dus bij." }
+          ? { type: "good", ignoreMin: ["devtok"], text: "In de sandbox kan de agent het token niet uit de keyvault halen (getest met de sleutelhanger van macOS). Buiten de sandbox wel: een commando dat " + (s.perm === "h-autoreview" ? "de reviewer" : "de ontwikkelaar") + " goedkeurt, kan er dus bij." }
           : { type: "insight", cap: { v: 3 }, text: "Versleuteld, maar de agent hoeft het niet zelf te lezen: hij vraagt het gewoon aan git." + (s.loc === "devcontainer" ? " En de devcontainer stuurt de inlog door." : " Zonder sandbox houdt niets dat tegen.") })
-        : s.loc && { type: "good", ignoreMin: ["devtok"], text: "Het token staat versleuteld op de laptop. De agent in " + awayName(s) + " kan er niet bij." }),
-      (s) => s.devtok === "dt-cache" && (s.loc && devLogin(s)
+        : s.loc && { type: "good", ignoreMin: ["devtok"], text: "Het token staat in de keyvault van de laptop. De agent in " + awayName(s) + " kan er niet bij." }),
+      (s) => s.devtok === "dt-oauth" && (s.loc && devLogin(s)
         ? (sbx(s) && s.loc === "laptop"
-          ? { type: "good", ignoreMin: ["devtok"], text: "In de sandbox kan de agent niet bij het onthouden token (getest op een Mac). Buiten de sandbox wel: een commando dat " + (s.perm === "h-autoreview" ? "de reviewer" : "de ontwikkelaar") + " goedkeurt, kan er dus bij." }
-          : { type: "insight", cap: { v: 3 }, text: "Zolang git het token onthoudt, kan de agent het opvragen. En wie de hele dag met git werkt, is bijna altijd ingelogd." + (s.loc === "devcontainer" ? " De devcontainer stuurt de inlog ook door." : " Zonder sandbox houdt niets dat tegen.") })
-        : s.loc && { type: "good", ignoreMin: ["devtok"], text: "Het token staat even in het geheugen van de laptop. De agent in " + awayName(s) + " kan er niet bij." }),
+          ? { type: "good", ignoreMin: ["devtok"], text: "Een OAuth-token verloopt na twee uur, en git ververst het uit de keyvault. In de sandbox kan de agent daar niet bij. Buiten de sandbox wel: een commando dat " + (s.perm === "h-autoreview" ? "de reviewer" : "de ontwikkelaar") + " goedkeurt, kan er dus bij." }
+          : { type: "insight", cap: { v: 3 }, text: "Een OAuth-token verloopt na twee uur, maar git ververst het zelf: de agent vraagt het gewoon aan git." + (s.loc === "devcontainer" ? " De devcontainer stuurt de inlog ook door." : " Zonder sandbox houdt niets dat tegen.") })
+        : s.loc && { type: "good", ignoreMin: ["devtok"], text: "Het token staat op de laptop. De agent in " + awayName(s) + " kan er niet bij." }),
+      (s) => s.devtok === "dt-none" && (["a-pat", "a-credman"].includes(s.auth)
+        ? { type: "insight", text: "Geen eigen token, maar de agent werkt met het token van de ontwikkelaar: dan is er dus toch een." }
+        : { type: "good", adj: ["g-pull", "g-dev"].includes(s.git) ? { s: -0.5 } : undefined, text: "Er staat geen GitLab-token van de ontwikkelaar op de laptop: de agent kan het ook niet vinden." + (["g-pull", "g-dev"].includes(s.git) ? " Pushen doet de ontwikkelaar dan via de webinterface van GitLab of een SSH-sleutel: omslachtiger." : "") }),
       // model
-      (s) => s.model === "codex" && (s.loc === "laptop" && s.perm !== "h-profile"
-        ? { type: "insight", adj: { v: -0.5 }, text: "Het slimste en snelste model. Wat de agent leest, gaat naar OpenAI: de code, maar ook sleutels en tokens die hij op de laptop tegenkomt." }
-        : s.loc && { type: "good", text: "Het slimste en snelste model. Wat de agent leest, gaat naar OpenAI: hier alleen de code" + (s.loc === "laptop" ? ", want het profiel schermt sleutels en tokens af." : s.loc === "remote-vm" ? ", want in de VM staat verder niets." : ", want de container ziet alleen de projectmap.") }),
+      (s) => s.model === "codex" && (s.loc === "laptop" && !hasProfile(s)
+        ? { type: "insight", adj: { v: -0.5 }, text: "Het slimste en snelste model. Wat de agent leest, gaat naar Microsoft: de code, maar ook sleutels en tokens die hij op de laptop tegenkomt." }
+        : s.loc && { type: "good", text: "Het slimste en snelste model. Wat de agent leest, gaat naar Microsoft: hier alleen de code" + (s.loc === "laptop" ? ", want het profiel schermt sleutels en tokens af." : s.loc === "remote-vm" ? ", want in de VM staat verder niets." : ", want de container ziet alleen de projectmap.") }),
       (s) => s.model === "qwen-werk" && (s.loc === "remote-vm"
-        ? { type: "insight", text: "Alles blijft bij Rijkswaterstaat, ook als je vanuit de VM thuiswerkt. Maar het model is minder slim en trager dan Codex." }
+        ? { type: "insight", text: "Alles blijft bij Rijkswaterstaat, ook als je vanuit de VM thuiswerkt. Maar het model is minder slim en trager dan de GPT-modellen van Azure OpenAI." }
         : s.loc && { type: "insight", adj: { s: -0.5 }, text: "Alles blijft bij Rijkswaterstaat. Maar thuis bereik je deze servers niet vanaf de laptop: dan werk je alleen op kantoor." }),
       (s) => s.model === "local-model" && (s.loc === "remote-vm"
         ? { type: "risk", adj: { s: -2 }, text: "De VM bereikt het model op je laptop niet. Dit werkt niet." }
@@ -220,7 +229,7 @@ window.CASES = [
       "In sommige oude repo's staat werk dat nooit is gepusht. Eén conda-env hoort bij een project dat nog loopt.",
       "In Downloads staan pdf's en bijlagen van buiten. Daar kan een verborgen instructie voor de agent in staan.",
       "Qwen draait op de servers van Rijkswaterstaat, zonder internet en zonder iets op te slaan. Bereikbaar op het netwerk van Rijkswaterstaat (op kantoor), niet thuis, ook niet via VPN.",
-      "Codex Enterprise van OpenAI (in de cloud) is het slimst. Qwen is minder slim. Een eigen model op je laptop (een kleinere Qwen) werkt ook thuis, maar is nog minder slim en maakt nog meer fouten. Qwen is een Chinees model, van Alibaba.",
+      "De GPT-modellen van Azure OpenAI (in de cloud van Microsoft) zijn het slimst. Qwen is minder slim. Een eigen model op je laptop (een kleinere Qwen) werkt ook thuis, maar is nog minder slim en maakt nog meer fouten. Qwen is een Chinees model, van Alibaba.",
       "Codex als harnas kan ook met Qwen werken.",
     ],
     focus: "laptop",
@@ -251,17 +260,16 @@ window.CASES = [
       { id: "look-all", slot: "look", title: "Alles, ook wat erin staat", desc: "Hij opent bestanden om te zien wat ze zijn.", detail: "Nauwkeurig: hij weet wat hij voorstelt.", v: 3, s: 5 },
       { id: "look-names", slot: "look", title: "Alleen namen, grootte en datum", desc: "Je draagt hem op geen bestanden te openen. Daaruit stelt hij voor wat weg kan.", detail: "Minder nauwkeurig: hij weet niet wat erin staat.", v: 4, s: 3.5 },
       // harness
-      { id: "h-codex-profile", slot: "harness", title: "Codex met sandbox en eigen profiel (opgesteld samen met GPT-6.1), de quarantainemap als werkmap", desc: "Hij kijkt overal, behalve bij je sleutels en tokens. Voor elke verplaatsing vraagt hij jou.", detail: "Zelf weggooien kan hij alleen in de quarantainemap.", v: 4.5, s: 3.5 },
-      { id: "h-codex-auto", slot: "harness", title: "Codex met sandbox en eigen profiel, auto-review, de quarantainemap als werkmap", desc: "Als hierboven, maar een reviewmodel van OpenAI keurt de verplaatsingen goed in plaats van jij.", detail: "Werkt alleen met een model van OpenAI.", v: 4, s: 4.5 },
-      { id: "h-codex-home", slot: "harness", title: "Codex met sandbox en eigen profiel, je home-map als werkmap", desc: "Hij verplaatst en gooit weg in je home-map zonder te vragen. Je sleutels en tokens kan hij niet lezen of weggooien. Geen netwerk.", detail: "", v: 3, s: 5 },
-      { id: "h-full", slot: "harness", title: "Codex op Full Access", desc: "Geen sandbox en geen vragen.", detail: "Tien minuten en klaar.", v: 1, s: 5 },
+      { id: "h-codex-profile", slot: "harness", title: "Codex met sandbox en de quarantainemap", desc: "Voor elke verplaatsing vraagt hij jou. Een profiel schermt je sleutels en tokens af.", detail: "", v: 4.5, s: 3.5 },
+      { id: "h-codex-auto", slot: "harness", title: "Codex met sandbox en auto-review, en de quarantainemap", desc: "Een apart reviewmodel keurt de verplaatsingen goed in plaats van jij. Een profiel schermt je sleutels en tokens af.", detail: "Werkt alleen met modellen van OpenAI, niet met Qwen.", v: 4, s: 4.5 },
+      { id: "h-full", slot: "harness", title: "Codex op Full Access", desc: "Geen sandbox en geen vragen.", detail: "", v: 1, s: 5 },
       // net
       { id: "net-open", slot: "net", title: "Internet open", desc: "Hij kan dingen opzoeken.", detail: "", v: 1, s: 5 },
       { id: "net-sandbox", slot: "net", title: "Netwerk uit voor zijn commando's", desc: "Alleen de verbinding met het model blijft.", detail: "Werkt alleen in een harnas met sandbox.", v: 4, s: 4 },
       { id: "net-ask", slot: "net", title: "Hij vraagt het als hij internet nodig heeft", desc: "Per keer goedkeuren.", detail: "", v: 3, s: 3 },
       // model
       { id: "qwen-werk", slot: "model", title: "Qwen op de servers van Rijkswaterstaat", desc: "Wat de agent leest, blijft bij Rijkswaterstaat. Alleen op kantoor.", detail: "Minder slim en trager. Een Chinees model.", v: 4, s: 3.5 },
-      { id: "codex", slot: "model", title: "Codex Enterprise van OpenAI (cloud)", desc: "Het slimst en het snelst.", detail: "Alles wat de agent bekijkt, gaat naar de cloud.", v: 2, s: 5 },
+      { id: "codex", slot: "model", title: "GPT-modellen via Azure OpenAI (cloud van Microsoft)", desc: "Het slimst en het snelst.", detail: "Alles wat de agent bekijkt, gaat naar de cloud van Microsoft.", v: 2, s: 5 },
       { id: "local-model", slot: "model", title: "Een eigen model op je laptop", desc: "Een kleinere Qwen. Alles blijft op je laptop, ook thuis.", detail: "Het minst slim. Ook Chinees.", v: 4, s: 1.5 },
     ],
     rules: [
@@ -278,8 +286,7 @@ window.CASES = [
       (s) => s.harness === "h-codex-profile" && { type: "good", text: "Zonder jouw ja verplaatst hij niets, wat er ook in een pdf staat, en je sleutels en tokens kan hij niet lezen. Wat je goedkeurt, draait buiten de sandbox. Wat niet in het profiel staat, kan hij wel lezen." },
       (s) => s.harness === "h-codex-auto" && (isQwen(s.model)
         ? { type: "risk", adj: { s: -2 }, text: "Met Qwen werkt auto-review niet: Codex vraagt om een eigen reviewmodel van OpenAI, dat er dan niet is, en weigert elke verplaatsing (getest)." }
-        : { type: "good", text: "Jij hoeft niet elke verplaatsing goed te keuren: een reviewmodel van OpenAI doet het. Dat kan zich vergissen, en wat het goedkeurt, draait buiten de sandbox." }),
-      (s) => s.harness === "h-codex-home" && { type: "risk", cap: { v: 3 }, text: "Geen netwerk, en je sleutels en tokens zijn afgeschermd (getest). Maar de rest van je home-map kan hij zonder vragen weggooien in plaats van verplaatsen: de quarantainemap is een afspraak." },
+        : { type: "good", text: "Jij hoeft niet elke verplaatsing goed te keuren: een apart reviewmodel doet het. Dat kan zich vergissen, en wat het goedkeurt, draait buiten de sandbox." }),
       (s) => s.harness === "h-full" && { type: "risk", cap: { v: 1 }, text: "Geen sandbox en geen vragen: elke fout of injectie draait meteen, met jouw rechten op je hele laptop. Ook een rm in plaats van een verplaatsing, en het profiel geldt niet." },
       // netwerk
       (s) => s.net === "net-open" && { type: "risk", cap: { v: 2 }, text: "Een pdf met een verborgen instructie en een agent met internet: dan kan alles naar buiten." },
@@ -306,7 +313,7 @@ window.CASES = [
       "Op haar laptop is ze in twee uur klaar.",
       "De remote VM kost geld per maand, en de data moet ernaartoe. Een afgesloten VM op de laptop kan ook: het model hoeft niet in de VM te draaien.",
       "Qwen op de servers van Rijkswaterstaat is bereikbaar op het netwerk van Rijkswaterstaat en vanuit de remote VM, ook als je thuiswerkt. Thuis vanaf je laptop niet, ook niet via VPN.",
-      "Codex van OpenAI is het slimst, Qwen op de servers van Rijkswaterstaat minder, een eigen model op je laptop (een kleinere Qwen) het minst. Qwen is een Chinees model.",
+      "De GPT-modellen van Azure OpenAI zijn het slimst, Qwen op de servers van Rijkswaterstaat minder, een eigen model op je laptop (een kleinere Qwen) het minst. Qwen is een Chinees model.",
     ],
     focus: "data",
     zones: {
@@ -343,13 +350,12 @@ window.CASES = [
       { id: "remote-vm", slot: "loc", title: "De remote VM van Rijkswaterstaat", desc: "Voor dit project opgezet en goedgekeurd, beheerd door anderen.", detail: "Kost geld per maand. Bereikt Qwen op de servers van Rijkswaterstaat, ook thuis.", v: 4, s: 3.5, from: "r1" },
       // harness
       { id: "h-codex", slot: "harness", title: "Codex met sandbox", desc: "Schrijven alleen in de projectmap, geen netwerk voor commando's.", detail: "Open source, van OpenAI.", v: 4, s: 3.5 },
-      { id: "h-codex-auto", slot: "harness", title: "Codex met sandbox en auto-review", desc: "Als Codex met sandbox, maar wil hij eruit, dan beslist een reviewmodel van OpenAI in plaats van zij.", detail: "Werkt alleen met een model van OpenAI.", v: 3.5, s: 4 },
+      { id: "h-codex-auto", slot: "harness", title: "Codex met sandbox en auto-review", desc: "Als Codex met sandbox, maar wil hij eruit, dan beslist een apart reviewmodel in plaats van zij.", detail: "Werkt alleen met modellen van OpenAI, niet met Qwen.", v: 3.5, s: 4 },
       { id: "h-full", slot: "harness", title: "Codex op Full Access", desc: "Geen sandbox en geen vragen.", detail: "", v: 1, s: 5 },
       { id: "h-qwencode", slot: "harness", title: "Qwen Code met sandbox", desc: "Geen netwerk voor commando's.", detail: "Open source, van Alibaba. De sandbox werkt alleen op Linux.", v: 4, s: 3 },
       { id: "h-claude", slot: "harness", title: "Claude Code met sandbox", desc: "Geen netwerk voor commando's.", detail: "Van Anthropic. De sandbox staat standaard uit: die zet je zelf aan.", v: 4, s: 3.5 },
       { id: "h-openhands", slot: "harness", title: "OpenHands met Docker-sandbox", desc: "Elke sessie in een eigen container.", detail: "Open source, met een webinterface.", v: 4, s: 3.5 },
       { id: "h-cline", slot: "harness", title: "Cline in VS Code met auto-approve", desc: "Vertrouwd. Het model bepaalt zelf welke commando's veilig zijn.", detail: "Geen sandbox.", v: 2, s: 5 },
-      { id: "h-opencode", slot: "harness", title: "opencode met permissies", desc: "Voor commando's vraagt hij, gevoelige paden zijn verboden.", detail: "", v: 2, s: 4 },
       // net
       { id: "net-open", slot: "net", title: "Internet open", desc: "pip, documentatie, alles werkt.", detail: "", v: 1, s: 5 },
       { id: "net-sandbox", slot: "net", title: "Netwerk uit in de sandbox van het harnas", desc: "Commando's krijgen geen netwerk; de verbinding met het model blijft.", detail: "Werkt alleen in een harnas met sandbox.", v: 3, s: 4 },
@@ -359,7 +365,7 @@ window.CASES = [
       { id: "net-closed", slot: "net", title: "Geen internet, alleen het model", desc: "Het strengste wat kan. Documentatie opzoeken kan niet.", detail: "", v: 5, s: 2.5 },
       // model
       { id: "qwen-werk", slot: "model", title: "Qwen op de servers van Rijkswaterstaat", desc: "Data blijft bij Rijkswaterstaat. Bereikbaar op kantoor en vanuit de remote VM.", detail: "Minder slim en trager. Een Chinees model.", v: 4, s: 3.5 },
-      { id: "codex", slot: "model", title: "Codex Enterprise van OpenAI (cloud)", desc: "Het slimst en het snelst.", detail: "Wat de agent leest, gaat naar de cloud.", v: 2, s: 5 },
+      { id: "codex", slot: "model", title: "GPT-modellen via Azure OpenAI (cloud van Microsoft)", desc: "Het slimst en het snelst.", detail: "Wat de agent leest, gaat naar de cloud van Microsoft.", v: 2, s: 5 },
       { id: "local-model", slot: "model", title: "Een eigen model op je laptop", desc: "Een kleinere Qwen. Werkt ook thuis.", detail: "Het minst slim. Ook Chinees.", v: 4, s: 1.5 },
       { id: "openwebui-search", slot: "model", title: "Qwen in Open WebUI, met web search", desc: "Kan ook documentatie opzoeken op internet.", detail: "", v: 2, s: 4.5 },
       // data
@@ -388,14 +394,12 @@ window.CASES = [
       // harnas
       (s) => s.harness === "h-full" && { type: "risk", cap: onLaptop(s) ? { v: 1 } : undefined, adj: inVm(s) ? { v: -0.5 } : undefined, text: "Geen sandbox en geen vragen: elk commando draait meteen, met het netwerk van de omgeving." + (inVm(s) ? " De schade blijft wel binnen de VM." : "") },
       (s) => s.harness === "h-cline" && { type: "insight", ignoreMin: inVm(s) ? ["harness"] : [], text: "Geen sandbox: commando's draaien met jouw rechten en netwerk." + (inVm(s) ? " Hier is de VM de sandbox, maar het netwerk van de VM hebben ze wel." : "") },
-      (s) => s.harness === "h-opencode" && { type: "insight", cap: inVm(s) ? undefined : { v: 2 }, ignoreMin: inVm(s) ? ["harness"] : [], text: "Het verbod op paden houdt commando's niet tegen: opencode zegt zelf dat het geen isolatie is." + (inVm(s) ? " Hier schermt de VM af." : "") },
       (s) => sandboxHarness(s.harness) && inVm(s) && { type: "good", adj: { v: 0.5 }, text: "Twee lagen: de VM schermt de laptop af, de sandbox het netwerk." },
       (s) => sandboxHarness(s.harness) && { type: "insight", text: "Het harnas kan zelf gebruiksgegevens naar zijn maker sturen, en elke update kan dat veranderen." },
       (s) => s.harness === "h-codex-auto" && s.model && (s.model === "codex"
-        ? { type: "insight", adj: { v: -0.5 }, text: "Wil de agent de sandbox uit, dan beslist een reviewmodel van OpenAI, niet zij. Dat leest de sessie mee, met gevoelige meldingen erin, en kan zich vergissen." }
+        ? { type: "insight", adj: { v: -0.5 }, text: "Wil de agent de sandbox uit, dan beslist een apart reviewmodel, niet zij. Dat leest de sessie mee, met gevoelige meldingen erin, en kan zich vergissen." }
         : { type: "risk", adj: { s: -2 }, text: "Met Qwen werkt auto-review niet: Codex vraagt om een eigen reviewmodel van OpenAI, dat er dan niet is, en weigert alles buiten de sandbox (getest)." }),
-      (s) => s.harness === "h-claude" && { type: "insight", text: "Claude Code is alleen het harnas: de meldingen gaan naar het gekozen model, niet naar Anthropic. Wel gaan standaard gebruiksgegevens naar Anthropic." + (s.model === "codex" ? " En Codex Enterprise gebruik je normaal via Codex zelf, niet via Claude Code." : "") },
-      (s) => s.harness === "h-qwencode" && s.model === "codex" && { type: "insight", text: "Codex Enterprise gebruik je normaal via Codex zelf, niet via Qwen Code." },
+      (s) => s.harness === "h-claude" && { type: "insight", text: "Claude Code is alleen het harnas: de meldingen gaan naar het gekozen model, niet naar Anthropic. Wel gaan standaard gebruiksgegevens naar Anthropic." + (s.model === "codex" ? " En Claude Code spreekt de API van Anthropic, Azure OpenAI niet: daar is een tussenstation voor nodig." : "") },
       // netwerk
       (s) => s.net === "net-open" && { type: "risk", cap: { v: 2 }, text: "Gevoelige data, tekst van buiten en een weg naar buiten: één melding hoeft alleen nog om een upload te vragen." },
       (s) => onLaptop(s) && ["net-allowlist", "net-closed", "net-env-proxy"].includes(s.net) && { type: "risk", cap: { v: 2 }, text: "Netwerkregels van een VM gelden niet op de laptop: die heeft gewoon internet." },
@@ -404,19 +408,19 @@ window.CASES = [
       (s) => s.net === "net-env-proxy" && inVm(s) && { type: "insight", cap: { v: 2 }, text: "Een instelling is een verzoek, geen slot: een programma dat hem negeert, gaat direct naar buiten." },
       (s) => s.net === "net-allowlist" && inVm(s) && { type: "good", adj: { v: 0.5 }, text: "Afgedwongen: alleen de proxy mag naar buiten, en die alleen naar de lijst." },
       (s) => s.net === "net-closed" && inVm(s) && s.model !== "codex" && { type: "good", adj: { v: 0.5, s: -0.5 }, text: "Er is geen weg naar buiten. Documentatie opzoeken kan niet." },
-      (s) => s.net === "net-closed" && s.model === "codex" && { type: "risk", adj: { s: -2 }, text: "Codex draait in de cloud: zonder weg naar OpenAI werkt de agent niet. Met die weg gaat alles wat hij leest naar buiten." },
+      (s) => s.net === "net-closed" && s.model === "codex" && { type: "risk", adj: { s: -2 }, text: "Azure OpenAI draait in de cloud: zonder weg naar Microsoft werkt de agent niet. Met die weg gaat alles wat hij leest naar buiten." },
       (s) => isQwen(s.model) && (s.net === "net-open" || (onLaptop(s) && s.net !== "net-sandbox") || (s.net === "net-sandbox" && s.harness && !sandboxHarness(s.harness))
         ? { type: "risk", text: qwenNews + " Hier zou zo'n upload slagen, bij elk model. Een ander model kiezen verandert dat niet." }
         : (["net-allowlist", "net-closed"].includes(s.net) || (s.net === "net-sandbox" && sandboxHarness(s.harness))) && { type: "good", text: qwenNews + " Hier loopt zo'n poging dood." }),
       // model en data
-      (s) => s.model === "codex" && ["raw", "agent-pseudo"].includes(s.data) && { type: "risk", cap: { v: 1 }, text: "Zwakke plekken van tunnels en bruggen en namen van bestuurders gaan naar een Amerikaanse cloud. Het cloudbeleid van het Rijk raadt dat af voor vitale infrastructuur (§4.3)." },
+      (s) => s.model === "codex" && ["raw", "agent-pseudo"].includes(s.data) && { type: "risk", cap: { v: 1 }, text: "Zwakke plekken van tunnels en bruggen en namen van bestuurders gaan naar de cloud van Microsoft, een Amerikaanse leverancier. Ook als die in de EU verwerkt, raadt het cloudbeleid van het Rijk dat af voor vitale infrastructuur (§4.3)." },
       (s) => s.model === "codex" && s.data === "sample" && { type: "insight", cap: { v: 3 }, text: "Opgeschoonde vrije tekst blijft lastig: namen staan midden in zinnen, en een tunnel is herkenbaar aan zijn ligging." },
       (s) => s.model === "local-model" && { type: "insight", adj: { s: -0.5 }, text: "Het minst slimme model: meer fouten, en dat met een deadline. Wel blijft alles op je laptop." },
       (s) => isQwen(s.model) && { type: "insight", text: "Qwen is een Chinees model. Het cloudbeleid van het Rijk sluit diensten uit landen met een offensief cyberprogramma uit (§4.2), maar Qwen op eigen servers is geen dienst van Alibaba. Wat telt, is de weg naar buiten." },
       (s) => s.model === "openwebui-search" && { type: "insight", cap: { v: 2 }, text: "Web search is een weg naar buiten, ook als het netwerk van de agent dicht is." },
       (s) => s.data === "agent-pseudo" && { type: "insight", cap: { v: isQwen(s.model) ? 3 : 1 }, text: "Om op te schonen moet de agent eerst alles lezen: alle ruwe data gaat dus toch naar het model." },
       (s) => s.data === "qwen-pseudo" && (s.model === "codex"
-        ? { type: "insight", cap: { v: 2 }, text: "Een taalmodel is geen betrouwbaar filter: wat Qwen mist, gaat alsnog naar de Amerikaanse cloud." }
+        ? { type: "insight", cap: { v: 2 }, text: "Een taalmodel is geen betrouwbaar filter: wat Qwen mist, gaat alsnog naar de cloud van Microsoft." }
         : { type: "insight", cap: { v: 3 }, adj: { s: -0.5 }, text: "Met Qwen als model blijft alles al bij Rijkswaterstaat: de extra stap kost tijd en levert niets op." }),
       (s) => s.data === "sample" && { type: "good", text: "De agent heeft niet alle data nodig: sneller én veiliger." },
       // mens
