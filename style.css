@@ -278,7 +278,10 @@ b.band-high { color: var(--good); }
   border: 1px solid var(--line); border-radius: var(--radius);
   padding: 18px;
 }
-.board-bottom { display: grid; margin-top: 0; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+/* Onderaan (internet): dezelfde kolommen als het bord erboven, dus onder de agent en niet over de hele breedte. */
+.board-bottom { display: grid; margin-top: 0; grid-template-columns: 1fr 120px 1fr; }
+.board-bottom > * { grid-column: 1; }
+.board-bottom > .zone + .zone { grid-column: 3; grid-row: 2; }
 
 .zone { border-radius: var(--radius); padding: 12px 14px 14px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
 .zone-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
@@ -454,6 +457,8 @@ b.band-high { color: var(--good); }
   .tri-mdl { display: none; }
   .tri-dn { display: block; }
   .tri-up-mens { display: none; }
+  .board-bottom { grid-template-columns: 1fr; }
+  .board-bottom > .zone + .zone { grid-column: 1; grid-row: auto; }
   .tri-mid { justify-content: center; }
   .flow-both-h { width: auto; height: 76px; flex-direction: row; }
   .flow-both-h .doodle { width: 62px; height: 22px; transform: rotate(90deg); }

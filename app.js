@@ -449,7 +449,7 @@
   // Het onderwerp van de ronde (focus) groot bovenaan, met een schets. Daaronder links de agent, genest in zijn lagen:
   // de VM (als die optie er is) om het harnas, het harnas om de agent. Rechts de mens, buiten die lagen.
   // Pijlen tussen focus, agent en mens. Onder de mens, los van de agent, de modellen: het model krijgt alles wat de agent leest.
-  // Wat verder nog meedoet (GitLab, internet), staat onderaan.
+  // Wat verder nog meedoet (internet), staat onderaan, onder de agent: in dezelfde kolommen als het bord erboven.
   const NEST = ["vm", "harness"];
   function renderBoard() {
     const c = cur(), data = cs();
@@ -477,7 +477,7 @@
         <div class="tri-mens">${zone("mens")}</div>
         ${has("model") ? `<div class="tri-mdl">${arrowRight(a.model || "")}</div><div class="tri-dn">${arrowDown(a.model || "")}</div><div class="tri-models">${zone("model")}</div>` : ""}
       </div>
-      ${rest.length ? `${arrowDown(a.rest || "")}<div class="board-bottom">${rest.map((z) => zone(z)).join("")}</div>` : ""}`;
+      ${rest.length ? `<div class="board-bottom">${arrowDown(a.rest || "")}${rest.map((z) => zone(z)).join("")}</div>` : ""}`;
   }
 
   function slotHtml(c, data, sl) {
