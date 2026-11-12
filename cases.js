@@ -299,7 +299,7 @@ window.CASES = [
     carrySummary: true,
     story: [
       "Een data scientist moet vrijdag een analyse opleveren van 18.000 storingsmeldingen over bruggen, tunnels en sluizen. Daarin staan zwakke plekken, beveiligingsdetails en namen van bestuurders. De export staat op de netwerkschijf.",
-      "Ze wil samen met de agent een script schrijven en dat via een MR in GitLab zetten. En als het kan, ruimt de agent meteen haar Downloads op.",
+      "Ze wil samen met de agent een script schrijven. Git gebruikt ze alleen lokaal, om versies en opschoonrondes vast te leggen. En als het kan, ruimt de agent meteen haar Downloads op.",
     ],
     task: "Bouw een veilige opstelling voor deze gevoelige data. Jullie keuzes uit ronde 1 en 2 staan al ingevuld waar ze passen: kloppen ze hier nog? Daarna vertellen jullie klassikaal wat jullie kozen, en waarom.",
     facts: [
@@ -317,8 +317,6 @@ window.CASES = [
       harness: "Harnas",
       agent: "De agent",
       model: "Modellen",
-      gitlab: "GitLab",
-      artifactory: "Artifactory",
       internet: "Internet",
     },
     zoneNotes: {
@@ -336,9 +334,6 @@ window.CASES = [
       { id: "model", zone: "model", label: "Welk model?", carry: [["r2", "model"]] },
       { id: "loc", zone: "vm", label: "Waar draait de agent?", carry: [["r1", "loc"]] },
       { id: "data", zone: "data", label: "Welke data ziet de agent?" },
-      { id: "auth", zone: "gitlab", label: "Met welke inlog komt de agent bij GitLab?", carry: [["r1", "auth"]] },
-      { id: "git", zone: "gitlab", label: "Wie pullt en pusht?", carry: [["r1", "git"]] },
-      { id: "pkg", zone: "artifactory", label: "Waar komen pakketten vandaan?" },
       { id: "net", zone: "internet", label: "Wat mag de agent naar buiten?", carry: [["r2", "net"]] },
     ],
     blocks: [
@@ -357,17 +352,13 @@ window.CASES = [
       { id: "h-openhands", slot: "harness", title: "OpenHands met Docker-sandbox", desc: "Elke sessie in een eigen container. Werkt met elk model.", detail: "Open source, met een webinterface.", v: 4, s: 3.5 },
       { id: "h-cline", slot: "harness", title: "Cline in VS Code met auto-approve", desc: "Vertrouwd, werkt met Qwen. Het model bepaalt zelf welke commando's veilig zijn.", detail: "Geen sandbox.", v: 2, s: 5 },
       { id: "h-opencode", slot: "harness", title: "opencode met permissies", desc: "Voor commando's vraagt hij, gevoelige paden zijn verboden.", detail: "Werkt met elk model.", v: 2, s: 4 },
-      // pkg
-      { id: "pkg-pypi", slot: "pkg", title: "Rechtstreeks van pypi.org", desc: "pip install zoals altijd.", detail: "Werkt alleen als de VM pypi.org bereikt.", v: 2, s: 5 },
-      { id: "pkg-proxy", slot: "pkg", title: "De centrale Artifactory, als doorgeefluik", desc: "Centraal geregeld. Wat er nog niet in staat, haalt hij zelf op van pypi.org.", detail: "Werkt ook als de VM geen internet heeft.", v: 3, s: 5 },
-      { id: "pkg-kept", slot: "pkg", title: "De centrale Artifactory, alleen goedgekeurde versies", desc: "Centraal geregeld. Alleen gecontroleerde versies; een nieuw pakket vraag je eerst aan.", detail: "Werkt ook zonder internet.", v: 5, s: 3.5 },
       // net
       { id: "net-open", slot: "net", title: "Internet open", desc: "pip, documentatie, alles werkt.", detail: "", v: 1, s: 5 },
       { id: "net-sandbox", slot: "net", title: "Netwerk uit in de sandbox van het harnas", desc: "Commando's krijgen geen netwerk; de verbinding met het model blijft.", detail: "Werkt alleen in een harnas met sandbox.", v: 3, s: 4 },
       { id: "net-ask", slot: "net", title: "Hij vraagt het als hij internet nodig heeft", desc: "Per keer goedkeuren.", detail: "", v: 3, s: 3 },
-      { id: "net-env-proxy", slot: "net", title: "Proxy met allowlist, via een instelling", desc: "Alleen GitLab, het model en documentatie.", detail: "", v: 2, s: 3.5 },
+      { id: "net-env-proxy", slot: "net", title: "Proxy met allowlist, via een instelling", desc: "Alleen het model en documentatie.", detail: "", v: 2, s: 3.5 },
       { id: "net-allowlist", slot: "net", title: "Firewall: alleen de proxy mag naar buiten", desc: "Afgedwongen in de VM; de proxy laat alleen documentatie door.", detail: "", v: 4, s: 3 },
-      { id: "net-closed", slot: "net", title: "Geen internet: alleen GitLab, de Artifactory en het model", desc: "Het strengste wat kan. Documentatie opzoeken kan niet.", detail: "", v: 5, s: 2.5 },
+      { id: "net-closed", slot: "net", title: "Geen internet, alleen het model", desc: "Het strengste wat kan. Documentatie opzoeken kan niet.", detail: "", v: 5, s: 2.5 },
       // model
       { id: "qwen-werk", slot: "model", title: "Qwen op de servers van Rijkswaterstaat", desc: "Data blijft bij Rijkswaterstaat. Bereikbaar op kantoor en vanuit de remote VM.", detail: "Minder slim en trager. Een Chinees model.", v: 4, s: 3.5 },
       { id: "codex", slot: "model", title: "Codex Enterprise van OpenAI (cloud)", desc: "Het slimst en het snelst.", detail: "Wat de agent leest, gaat naar de cloud.", v: 2, s: 5 },
@@ -375,22 +366,12 @@ window.CASES = [
       { id: "openwebui-search", slot: "model", title: "Qwen in Open WebUI, met web search", desc: "Kan ook documentatie opzoeken op internet.", detail: "", v: 2, s: 4.5 },
       // data
       { id: "raw", slot: "data", title: "De volledige ruwe export", desc: "18.000 meldingen, met zwakke plekken en namen.", detail: "", v: 1, s: 4.5 },
-      { id: "share", slot: "data", title: "Netwerkschijf koppelen", desc: "De agent pakt wat hij nodig heeft.", detail: "", v: 1, s: 5 },
       { id: "agent-pseudo", slot: "data", title: "Agent schoont eerst zelf op", desc: "De agent vervangt eerst zelf namen en objectnamen door codes.", detail: "", v: 2, s: 4 },
       { id: "qwen-pseudo", slot: "data", title: "Qwen schoont eerst alles op", desc: "Qwen haalt eerst namen en details uit alle meldingen; de agent werkt met de schone tekst.", detail: "", v: 2, s: 3.5, from: "r2" },
       { id: "sample", slot: "data", title: "Opgeschoonde steekproef", desc: "200 meldingen, namen en objecten vervangen door codes. Het script draait daarna zonder agent op alles.", detail: "", v: 5, s: 4 },
-      // auth
-      { id: "a-pat", slot: "auth", title: "Haar eigen token", desc: "Haar persoonlijke token, met al haar rechten.", detail: "", v: 2, s: 5 },
-      { id: "a-credman", slot: "auth", title: "Een credential manager", desc: "Haar token in de keychain; git haalt het op.", detail: "", v: 3, s: 4.5, from: "r1" },
-      { id: "a-bot", slot: "auth", title: "Een eigen token voor de agent", desc: "Alleen deze repo, alleen pullen, naar een branch pushen en een MR openen.", detail: "", v: 4, s: 3.5 },
-      { id: "a-none", slot: "auth", title: "Geen inlog", desc: "Zij maakt de MR; de agent schrijft de beschrijving.", detail: "", v: 5, s: 3 },
-      // git
-      { id: "g-agent", slot: "git", title: "De agent pullt, commit en pusht", desc: "", detail: "", v: 2, s: 5 },
-      { id: "g-pull", slot: "git", title: "De agent pullt en commit, zij pusht", desc: "", detail: "", v: 4, s: 4 },
-      { id: "g-dev", slot: "git", title: "Alleen zij pullt en pusht", desc: "", detail: "", v: 5, s: 3.5 },
       // hitl
       { id: "per-action", slot: "hitl", title: "Elke actie goedkeuren", desc: "", detail: "", v: 3, s: 1 },
-      { id: "per-batch", slot: "hitl", title: "Script en aanpak reviewen", desc: "Zij reviewt het script vóór de volledige run, een collega de MR.", detail: "", v: 4, s: 4 },
+      { id: "per-batch", slot: "hitl", title: "Script en aanpak reviewen", desc: "Zij reviewt het script vóór de volledige run.", detail: "", v: 4, s: 4 },
       { id: "none-hitl", slot: "hitl", title: "Geen", desc: "De agent levert het eindresultaat.", detail: "", v: 1, s: 5 },
       // cleanup
       { id: "c-same", slot: "cleanup", title: "Deze agent ruimt meteen op", desc: "Hij is toch bezig.", detail: "", v: 1, s: 5 },
@@ -428,39 +409,22 @@ window.CASES = [
       (s) => s.net === "net-ask" && { type: "insight", adj: { v: -0.5 }, text: "Onder deadline-druk klik je binnen het uur ‘niet meer vragen’. Dan staat het internet open." },
       (s) => s.net === "net-env-proxy" && inVm(s) && { type: "insight", cap: { v: 2 }, text: "Een instelling is een verzoek, geen slot: een programma dat hem negeert, gaat direct naar buiten." },
       (s) => s.net === "net-allowlist" && inVm(s) && { type: "good", adj: { v: 0.5 }, text: "Afgedwongen: alleen de proxy mag naar buiten, en die alleen naar de lijst." },
-      (s) => s.net === "net-closed" && inVm(s) && s.model !== "codex" && { type: "good", adj: { v: 0.5, s: -0.5 }, text: "Er is geen weg naar buiten. Pakketten komen uit de Artifactory; documentatie opzoeken kan niet." },
-      (s) => s.pkg === "pkg-pypi" && inVm(s) && (s.net === "net-closed"
-        ? { type: "risk", adj: { s: -2 }, text: "Zonder internet bereikt de VM pypi.org niet: pip install werkt niet." }
-        : s.net === "net-allowlist" && { type: "risk", cap: { v: 3 }, text: "Dan moet pypi.org op de allowlist: elk pakket kan binnenkomen, en via pypi.org kan data naar buiten." }),
-      (s) => s.pkg === "pkg-proxy" && { type: "insight", adj: { v: -0.5 }, text: "De VM hoeft zelf niet naar pypi.org. Maar het is geen filter: vraagt de agent een kwaadaardig pakket, dan haalt de Artifactory het gewoon op." },
-      (s) => s.pkg === "pkg-kept" && inVm(s) && ["net-closed", "net-allowlist"].includes(s.net) && { type: "good", text: "Alleen gecontroleerde versies: een kwaadaardig pakket komt er niet in, en de afgeschermde VM werkt toch." },
+      (s) => s.net === "net-closed" && inVm(s) && s.model !== "codex" && { type: "good", adj: { v: 0.5, s: -0.5 }, text: "Er is geen weg naar buiten. Documentatie opzoeken kan niet." },
       (s) => s.net === "net-closed" && s.model === "codex" && { type: "risk", adj: { s: -2 }, text: "Codex draait in de cloud: zonder weg naar OpenAI werkt de agent niet. Met die weg gaat alles wat hij leest naar buiten." },
       (s) => isQwen(s.model) && (s.net === "net-open" || (onLaptop(s) && s.net !== "net-sandbox") || (s.net === "net-sandbox" && s.harness && !sandboxHarness(s.harness))
         ? { type: "risk", text: qwenNews + " Hier zou zo'n upload slagen, bij elk model. Een ander model kiezen verandert dat niet." }
         : (["net-allowlist", "net-closed"].includes(s.net) || (s.net === "net-sandbox" && sandboxHarness(s.harness))) && { type: "good", text: qwenNews + " Hier loopt zo'n poging dood." }),
       // model en data
-      (s) => s.model === "codex" && ["raw", "share", "agent-pseudo"].includes(s.data) && { type: "risk", cap: { v: 1 }, text: "Zwakke plekken van tunnels en bruggen en namen van bestuurders gaan naar een Amerikaanse cloud. Het cloudbeleid van het Rijk raadt dat af voor vitale infrastructuur (§4.3)." },
+      (s) => s.model === "codex" && ["raw", "agent-pseudo"].includes(s.data) && { type: "risk", cap: { v: 1 }, text: "Zwakke plekken van tunnels en bruggen en namen van bestuurders gaan naar een Amerikaanse cloud. Het cloudbeleid van het Rijk raadt dat af voor vitale infrastructuur (§4.3)." },
       (s) => s.model === "codex" && s.data === "sample" && { type: "insight", cap: { v: 3 }, text: "Opgeschoonde vrije tekst blijft lastig: namen staan midden in zinnen, en een tunnel is herkenbaar aan zijn ligging." },
       (s) => s.model === "local-model" && { type: "insight", adj: { s: -0.5 }, text: "Het minst slimme model: meer fouten, en dat met een deadline. Wel blijft alles op je laptop." },
       (s) => isQwen(s.model) && { type: "insight", text: "Qwen is een Chinees model. Het cloudbeleid van het Rijk sluit diensten uit landen met een offensief cyberprogramma uit (§4.2), maar Qwen op eigen servers is geen dienst van Alibaba. Wat telt, is de weg naar buiten." },
       (s) => s.model === "openwebui-search" && { type: "insight", cap: { v: 2 }, text: "Web search is een weg naar buiten, ook als het netwerk van de agent dicht is." },
-      (s) => s.data === "share" && { type: "risk", cap: { v: s.model === "codex" ? 1 : 2 }, text: "De agent ziet de hele netwerkschijf, niet alleen deze export. Alles wat hij doorzoekt, gaat naar het model." },
       (s) => s.data === "agent-pseudo" && { type: "insight", cap: { v: isQwen(s.model) ? 3 : 1 }, text: "Om op te schonen moet de agent eerst alles lezen: alle ruwe data gaat dus toch naar het model." },
       (s) => s.data === "qwen-pseudo" && (s.model === "codex"
         ? { type: "insight", cap: { v: 2 }, text: "Een taalmodel is geen betrouwbaar filter: wat Qwen mist, gaat alsnog naar de Amerikaanse cloud." }
         : { type: "insight", cap: { v: 3 }, adj: { s: -0.5 }, text: "Met Qwen als model blijft alles al bij Rijkswaterstaat: de extra stap kost tijd en levert niets op." }),
       (s) => s.data === "sample" && { type: "good", text: "De agent heeft niet alle data nodig: sneller én veiliger." },
-      // GitLab
-      (s) => s.auth === "a-pat" && { type: "risk", cap: { v: 2 }, text: "De agent kan alles wat zij kan, in al haar projecten, en het token lezen. Eén melding kan vragen om het in de samenvatting te zetten." + (s.model === "codex" ? " Dan staat het ook bij de cloud-aanbieder." : "") },
-      (s) => s.auth === "a-credman" && { type: "insight", cap: { v: 2 }, text: "Git geeft haar token gewoon aan de agent als die erom vraagt. Het blijft haar token, met al haar rechten." },
-      (s) => s.auth === "a-bot" && { type: "good", text: "GitLab dwingt af wat de agent mag: alleen deze repo, alleen deze rechten." },
-      (s) => s.auth === "a-none" && { type: "insight", adj: { s: -0.5 }, text: "Veilig, maar zij moet alles in GitLab zelf doen. Dat kost tijd, met een deadline." },
-      (s) => s.git === "g-agent" && (sandboxHarness(s.harness) && s.harness !== "h-codex-auto" && s.loc !== "laptop"
-        ? { type: "good", text: "De agent pusht zelf, maar het harnas vraagt het eerst. Met pushrecht kan de agent in theorie branches verpesten, ook die van anderen." }
-        : s.harness && { type: "risk", adj: { v: -0.5 }, text: s.harness === "h-codex-auto" ? (s.model && s.model !== "codex" ? "Met Qwen weigert Codex elke push: de agent kan niet zelf pushen." : "De agent pusht, en de reviewer beslist, niet zij.") : "De agent pusht zonder dat iemand kijkt, met een sessie vol gevoelige meldingen." }),
-      (s) => ["g-pull", "g-dev"].includes(s.git) && s.loc && (s.loc === "laptop" || s.loc === "devcontainer" || (s.loc === "laptop-sandbox" && !sandboxHarness(s.harness))
-        ? { type: "risk", adj: { v: -0.5 }, text: "Afgesproken, niet afgedwongen. " + (s.loc === "devcontainer" ? "De devcontainer stuurt haar inlog door: de agent kan dus ook pushen." : "Op de laptop werkt haar inlog ook voor de agent.") }
-        : { type: "good", text: "Zij pusht wat ze heeft gezien. " + (inVm(s) ? "In de VM kan de agent niet bij haar inlog, zolang ze die er niet mee naartoe neemt." : "De sandbox houdt de agent van het netwerk.") }),
       // mens
       (s) => s.hitl === "per-action" && { type: "insight", adj: { v: -1, s: -1 }, text: "Je zit de hele tijd naast de agent, en onder deadline-druk klik je binnen het uur ‘altijd toestaan’." },
       (s) => s.hitl === "none-hitl" && { type: "risk", text: "Niemand kijkt naar het script voordat het op 18.000 meldingen draait." },
