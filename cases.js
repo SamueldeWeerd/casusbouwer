@@ -258,7 +258,6 @@ window.CASES = [
       { id: "h-codex-auto", slot: "harness", title: "Codex met sandbox en auto-review (‘Approve for me’)", desc: "Als Codex met sandbox, maar een reviewmodel van OpenAI keurt de verplaatsingen goed in plaats van jij.", detail: "Werkt alleen met een model van OpenAI.", v: 3.5, s: 4.5 },
       { id: "h-full", slot: "harness", title: "Codex op Full Access", desc: "Geen sandbox en geen vragen.", detail: "Tien minuten en klaar.", v: 1, s: 5 },
       { id: "h-cline", slot: "harness", title: "Cline in VS Code met auto-approve", desc: "Vertrouwd, werkt met Qwen. Het model bepaalt zelf welke commando's veilig zijn; alleen voor de rest vraagt hij.", detail: "Geen sandbox.", v: 2, s: 5 },
-      { id: "h-opencode", slot: "harness", title: "opencode met deny-regels", desc: "Lezen van ~/.ssh verboden; voor commando's vraagt hij.", detail: "Werkt met elk model.", v: 2, s: 4 },
       // net
       { id: "net-open", slot: "net", title: "Internet open", desc: "Hij kan dingen opzoeken.", detail: "", v: 1, s: 5 },
       { id: "net-sandbox", slot: "net", title: "Netwerk uit voor zijn commando's", desc: "Alleen de verbinding met het model blijft.", detail: "Werkt alleen in een harnas met sandbox.", v: 4, s: 4 },
@@ -287,7 +286,6 @@ window.CASES = [
         : { type: "good", text: "Jij hoeft niet elke verplaatsing goed te keuren: een reviewmodel van OpenAI doet het. Dat kan zich vergissen, en wat het goedkeurt, gebeurt." }),
       (s) => s.harness === "h-full" && { type: "risk", cap: { v: 1 }, text: "Geen sandbox en geen vragen: elke fout of injectie draait meteen, met jouw rechten op je hele laptop. Ook een rm in plaats van een verplaatsing." },
       (s) => s.harness === "h-cline" && { type: "risk", cap: { v: 2 }, text: "Geen sandbox: commando's draaien als jij. Het model beslist zelf wat veilig is, ook een rm in plaats van een verplaatsing." },
-      (s) => s.harness === "h-opencode" && { type: "insight", cap: { v: 2 }, text: "Het verbod geldt voor de leestool van opencode, niet voor commando's: die gaan er gewoon langs. opencode zegt zelf: geen isolatie." },
       // netwerk
       (s) => s.net === "net-open" && { type: "risk", cap: { v: 2 }, text: "Een pdf met een verborgen instructie en een agent met internet: dan kan alles naar buiten." },
       (s) => s.net === "net-sandbox" && !sandboxHarness(s.harness) && s.harness && { type: "risk", cap: { v: 2 }, text: "Dit harnas heeft " + (s.harness === "h-full" ? "op Full Access " : "") + "geen sandbox: het netwerk staat gewoon open." },
