@@ -5,7 +5,7 @@
   const STORE_KEY = "casusbouwer-v12";
   const AXES = [
     { id: "v", label: "Veiligheid", hint: "telt 1,5 keer", w: 1.5 },
-    { id: "s", label: "Eenvoud", hint: "makkelijk werken, weinig opletten" },
+    { id: "s", label: "Eenvoud", hint: "programmeur heeft tijd vrij voor andere taken of meerdere taken tegelijk" },
   ];
   const nl = (n) => String(n).replace(".", ","); // 11.6 → 11,6
   const band = (n) => (n >= 4 ? 2 : n >= 3 ? 1 : 0);
@@ -190,12 +190,12 @@
           <span>Totaal</span>
           <span class="total"><b>${nl(r.total)}</b></span>
         </div>
-        <div class="score-line">${AXES.map((a) => `<span class="ax-chip ax-${a.id}">${mini(a.id)}${a.label} <b class="${BAND_CLASS[band(r.scores[a.id])]}">${nl(r.scores[a.id])}</b>${a.w ? ` <span class="muted">×${nl(a.w)}</span>` : ""}</span>`).join("")}</div>
+        <div class="score-line">${AXES.map((a) => `<span class="ax-chip ax-${a.id}" title="${a.label}: ${a.hint}">${mini(a.id)}${a.label} <b class="${BAND_CLASS[band(r.scores[a.id])]}">${nl(r.scores[a.id])}</b>${a.w ? ` <span class="muted">×${nl(a.w)}</span>` : ""}</span>`).join("")}</div>
         <details class="calc">
           <summary>Hoe is dit berekend?</summary>
-          <ul>${["v", "s"].map(line).join("")}<li><b>Totaal ${nl(r.total)}</b> = 1,5 × veiligheid + eenvoud.</li></ul>
+          <ul>${["v", "s"].map(line).join("")}<li><b>Totaal ${nl(r.total)}</b> = 1,5 × veiligheid + eenvoud.</li><li class="muted">Eenvoud: programmeur heeft tijd vrij voor andere taken of meerdere taken tegelijk.</li></ul>
           <table>
-            <thead><tr><th>Vak</th><th>Blok</th><th title="Veiligheid">V</th><th title="Eenvoud">S</th></tr></thead>
+            <thead><tr><th>Vak</th><th>Blok</th><th title="Veiligheid">V</th><th title="Eenvoud: programmeur heeft tijd vrij voor andere taken of meerdere taken tegelijk">S</th></tr></thead>
             <tbody>${k.rows.map((row) => `<tr${row.ignored ? ' class="ignored" title="Telt niet mee als zwakste schakel"' : ""}><td>${esc(row.slot)}</td><td>${esc(row.title)}</td><td>${nl(row.v)}</td><td>${nl(row.s)}</td></tr>`).join("")}</tbody>
           </table>
           <p class="small muted">De score is deterministisch: dezelfde blokken geven altijd dezelfde uitkomst.</p>
