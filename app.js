@@ -387,9 +387,9 @@
       </g>
     </svg>`;
 
-  // Eindronde: meldingen van aannemers en weggebruikers, met gevoelige details, als datadump op haar eigen laptop.
+  // Eindronde: meldingen van aannemers en externen, met gevoelige details, als datadump op haar eigen laptop.
   const DATA_SKETCH = `
-    <svg class="sketch sketch-data" viewBox="0 0 640 150" role="img" aria-label="Schets: aannemers en weggebruikers sturen meldingen in, tekst van buiten. Een stapel van 18.000 meldingen met zwakke plekken, beveiligingsdetails en namen van bestuurders, als datadump op haar eigen laptop.">
+    <svg class="sketch sketch-data" viewBox="0 0 640 150" role="img" aria-label="Schets: aannemers en externen sturen meldingen in, tekst van buiten. Een stapel van 18.000 meldingen met zwakke plekken, beveiligingsdetails en namen van bestuurders, als datadump op haar eigen laptop.">
       <g class="sk">
         <path class="card" d="M12 20 h82 v28 h-56 l-10 10 v-10 h-16 z"/>
         <path class="card" d="M12 78 h82 v28 h-56 l-10 10 v-10 h-16 z"/>
@@ -408,7 +408,7 @@
       </g>
       <g class="sk-text">
         <text x="53" y="38" text-anchor="middle" class="sm">aannemer</text>
-        <text x="53" y="96" text-anchor="middle" class="sm">weggebruiker</text>
+        <text x="53" y="96" text-anchor="middle" class="sm">externe</text>
         <text x="66" y="140" text-anchor="middle" class="sm">tekst van buiten</text>
         <text x="210" y="138" text-anchor="middle">18.000 meldingen</text>
         <text x="371" y="44" text-anchor="middle" class="sm">zwakke plekken</text>
