@@ -38,7 +38,7 @@ window.CASES = [
     focus: "gitlab",
     story: [
       "Jullie team bouwt een dashboard, in een repository in GitLab. Daarop staan tickets (issues): bugs, features die moeten worden toegevoegd, en een refactoring.",
-      "Er zitten geen persoonsgegevens en geen gevoelige data in: de code, de issues en de testdata mogen naar Codex Enterprise.",
+      "Er zitten geen persoonsgegevens en geen gevoelige data in.",
       "Jullie werken die tickets weg samen met een AI-agent. De agent pakt een issue op, schrijft de fix op een eigen branch en draait de tests. De ontwikkelaar kijkt mee en beslist.",
     ],
     task: "Hoe werken de agent en de ontwikkelaar samen met GitLab? Kies waar de agent draait, met welke inlog hij bij GitLab komt, hoe het harnas om toestemming vraagt, welk model hij gebruikt, wie er pullt en pusht, wie de MR merget, en wat er draait als er gepusht wordt.",
@@ -46,7 +46,7 @@ window.CASES = [
       "Standaard werkt de agent in de terminal van de ontwikkelaar, op diens laptop: hij schrijft code en draait commando's. Een VM van Rijkswaterstaat of een devcontainer kan ook.",
       "Een devcontainer of een sandboxprofiel kun je opzetten samen met GPT-6.1 in Codex.",
       "Automatisch goedkeuren kan op twee manieren: het model beslist zelf wat veilig is (Cline), of een aparte reviewer-agent beslist als de agent de sandbox uit wil (Codex: auto-review).",
-      "Het model: Codex Enterprise van OpenAI (in de cloud) is het slimst en het snelst, en voor dit dashboard mag het. Qwen op de servers van Rijkswaterstaat is minder slim en alleen bereikbaar op het netwerk van Rijkswaterstaat, dus niet thuis. Qwen is een Chinees model.",
+      "Het model: Codex Enterprise van OpenAI (in de cloud) is het slimst en het snelst. Qwen op de servers van Rijkswaterstaat is minder slim en alleen bereikbaar op het netwerk van Rijkswaterstaat, dus niet thuis. Qwen is een Chinees model.",
       "Het harnas is het programma om het model heen. Het voert de commando's uit en kan om toestemming vragen.",
       "Een push start automatisch de pipeline uit .gitlab-ci.yml. Er is één runner, voor alle branches, met internet: de pipeline haalt pakketten nog rechtstreeks van pypi.org.",
     ],
@@ -111,7 +111,7 @@ window.CASES = [
       { id: "dt-plain", slot: "devtok", title: "Als platte tekst in de credential store", desc: "git config credential.helper store: het token staat leesbaar in ~/.git-credentials.", detail: "Eén keer intypen, daarna werkt het altijd.", v: 2, s: 5 },
       { id: "dt-cache", slot: "devtok", title: "Eén keer inloggen, daarna een tijdje onthouden", desc: "git config credential.helper cache: git onthoudt het token in het geheugen, standaard 15 minuten.", detail: "Daarna vraagt git het opnieuw.", v: 3, s: 4 },
       // model
-      { id: "codex", slot: "model", title: "Codex Enterprise van OpenAI (cloud)", desc: "Het slimst en het snelst. Voor dit dashboard mag het: geen persoonsgegevens, geen gevoelige data.", detail: "De code, de issues en alles wat de agent leest, gaan naar de cloud van OpenAI.", v: 4, s: 5 },
+      { id: "codex", slot: "model", title: "Codex Enterprise van OpenAI (cloud)", desc: "Het slimst en het snelst.", detail: "De code, de issues en alles wat de agent leest, gaan naar de cloud van OpenAI.", v: 4, s: 5 },
       { id: "qwen-werk", slot: "model", title: "Qwen op de servers van Rijkswaterstaat", desc: "Alles blijft bij Rijkswaterstaat. Bereikbaar op het netwerk van Rijkswaterstaat en vanuit de VM, niet thuis vanaf de laptop.", detail: "Minder slim en trager dan Codex. Een Chinees model, van Alibaba.", v: 4, s: 3.5 },
       { id: "local-model", slot: "model", title: "Een eigen model op je laptop", desc: "Een kleinere Qwen. Werkt ook thuis, zonder VM.", detail: "Het minst slim: nog meer fouten. Ook Chinees.", v: 4, s: 1.5 },
     ],
