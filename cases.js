@@ -371,8 +371,8 @@ window.CASES = [
       { id: "sample", slot: "data", title: "Zij maakt zelf een geanonimiseerde steekproef", desc: "Met de hand, 200 meldingen, en die geeft ze aan de agent. Het script draait daarna zonder agent op alles.", detail: "", v: 5, s: 3.5 },
       // hitl
       { id: "per-action", slot: "hitl", title: "Elke actie goedkeuren", desc: "", detail: "", v: 3, s: 1 },
-      { id: "per-batch", slot: "hitl", title: "Script en aanpak reviewen", desc: "Zij reviewt het script vóór de volledige run.", detail: "", v: 4, s: 4 },
-      { id: "none-hitl", slot: "hitl", title: "Geen", desc: "De agent levert het eindresultaat.", detail: "", v: 1, s: 5 },
+      { id: "per-batch", slot: "hitl", title: "Script en aanpak reviewen", desc: "De agent levert script en aanpak aan in een PowerPoint, met verwijzingen naar de code. Zij reviewt die vóór de volledige run.", detail: "", v: 4, s: 4 },
+      { id: "none-hitl", slot: "hitl", title: "Geen", desc: "De agent levert het eindresultaat, met presentatieslides over wat hij gedaan heeft en wat de resultaten zijn.", detail: "", v: 1, s: 5 },
     ],
     rules: [
       // waar
@@ -425,7 +425,9 @@ window.CASES = [
       (s) => s.data === "sample" && { type: "good", text: "De agent heeft niet alle data nodig. En wat hij leest, heeft zij zelf gezien: een verborgen instructie valt dan op. Met de hand kost het haar wel tijd." },
       // mens
       (s) => s.hitl === "per-action" && { type: "insight", adj: { v: -1, s: -1 }, text: "Je zit de hele tijd naast de agent, en onder deadline-druk klik je binnen het uur ‘altijd toestaan’." },
-      (s) => s.hitl === "none-hitl" && { type: "risk", text: "Niemand kijkt naar het script voordat het op 18.000 meldingen draait." },
+      (s) => s.hitl === "none-hitl" && (walled(s) && sandboxHarness(s.harness) && isQwen(s.model) && ["net-allowlist", "net-closed"].includes(s.net)
+        ? { type: "insight", ignoreMin: ["hitl"], text: "De opstelling is dicht: " + (inVm(s) ? "VM, sandbox" : "OpenShell") + ", Qwen en een afgedwongen netwerk. De agent kan alles zelf doen zonder dat er iets naar buiten gaat, en zij heeft haar tijd vrij. Wel ziet zij alleen de slides: een fout in het script zie je daar niet altijd aan." }
+        : { type: "risk", text: "Niemand kijkt naar het script voordat het op 18.000 meldingen draait. En de opstelling is niet dicht: wat de agent doet, merkt zij pas achteraf." }),
       (s) => s.loc === "remote-vm" && s.model === "qwen-werk" && s.data === "sample" && sandboxHarness(s.harness) && { type: "good", text: "Veilig, en het werkt ook thuis. Wel kost het geld, en het model is trager." },
     ],
   },
