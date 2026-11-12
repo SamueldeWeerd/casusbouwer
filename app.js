@@ -387,9 +387,9 @@
       </g>
     </svg>`;
 
-  // Eindronde: meldingen van aannemers en weggebruikers, met gevoelige details, als export op de netwerkschijf.
+  // Eindronde: meldingen van aannemers en weggebruikers, met gevoelige details, als datadump op haar eigen laptop.
   const DATA_SKETCH = `
-    <svg class="sketch sketch-data" viewBox="0 0 640 150" role="img" aria-label="Schets: aannemers en weggebruikers sturen meldingen in, tekst van buiten. Een stapel van 18.000 meldingen met zwakke plekken, beveiligingsdetails en namen van bestuurders, als export op de netwerkschijf.">
+    <svg class="sketch sketch-data" viewBox="0 0 640 150" role="img" aria-label="Schets: aannemers en weggebruikers sturen meldingen in, tekst van buiten. Een stapel van 18.000 meldingen met zwakke plekken, beveiligingsdetails en namen van bestuurders, als datadump op haar eigen laptop.">
       <g class="sk">
         <path class="card" d="M12 20 h82 v28 h-56 l-10 10 v-10 h-16 z"/>
         <path class="card" d="M12 78 h82 v28 h-56 l-10 10 v-10 h-16 z"/>
@@ -404,7 +404,7 @@
         <rect class="card hot" x="300" y="58" width="142" height="24" rx="4"/>
         <rect class="card hot" x="300" y="88" width="142" height="24" rx="4"/>
         <path class="push" d="M446 70 q20 0 40 0"/><path class="push" d="M477 63 l10 7 l-10 7"/>
-        <rect x="496" y="44" width="124" height="52" rx="6"/><path d="M510 62 h56 M510 78 h56"/><circle cx="600" cy="70" r="4"/>
+        <rect x="514" y="34" width="88" height="56" rx="4"/><path d="M500 96 h116 l-8 10 h-100 z"/>
       </g>
       <g class="sk-text">
         <text x="53" y="38" text-anchor="middle" class="sm">aannemer</text>
@@ -414,8 +414,8 @@
         <text x="371" y="44" text-anchor="middle" class="sm">zwakke plekken</text>
         <text x="371" y="74" text-anchor="middle" class="sm">beveiligingsdetails</text>
         <text x="371" y="104" text-anchor="middle" class="sm">namen van bestuurders</text>
-        <text x="466" y="58" text-anchor="middle" class="sm">export</text>
-        <text x="558" y="114" text-anchor="middle" class="sm">netwerkschijf</text>
+        <text x="473" y="58" text-anchor="middle" class="sm">datadump</text>
+        <text x="558" y="126" text-anchor="middle" class="sm">haar laptop</text>
       </g>
     </svg>`;
   const SKETCHES = { gitlab: GITLAB_SKETCH, laptop: LAPTOP_SKETCH, data: DATA_SKETCH };

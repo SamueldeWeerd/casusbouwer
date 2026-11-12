@@ -297,8 +297,8 @@ window.CASES = [
     selfEval: true,
     carrySummary: true,
     story: [
-      "Een data scientist moet vrijdag een analyse opleveren van 18.000 storingsmeldingen over bruggen, tunnels en sluizen. Daarin staan zwakke plekken, beveiligingsdetails en namen van bestuurders. De export staat op de netwerkschijf.",
-      "Ze wil samen met de agent een script schrijven. Git gebruikt ze alleen lokaal, om versies en opschoonrondes vast te leggen. En als het kan, ruimt de agent meteen haar Downloads op.",
+      "Een data scientist moet vrijdag een analyse opleveren van 18.000 storingsmeldingen over bruggen, tunnels en sluizen. Daarin staan zwakke plekken, beveiligingsdetails en namen van bestuurders. Ze heeft de meldingen als datadump op haar eigen laptop gekregen.",
+      "Ze wil samen met de agent een script schrijven. Git gebruikt ze alleen lokaal, om versies en opschoonrondes vast te leggen.",
     ],
     task: "Bouw een veilige opstelling voor deze gevoelige data. Daarna vertellen jullie klassikaal wat jullie kozen, en waarom.",
     facts: [
@@ -319,7 +319,7 @@ window.CASES = [
       internet: "Internet",
     },
     zoneNotes: {
-      data: "Een export van 18.000 storingsmeldingen op de netwerkschijf. Een deel komt van aannemers en weggebruikers: tekst van buiten.",
+      data: "Een datadump van 18.000 storingsmeldingen, op haar eigen laptop. Een deel komt van aannemers en weggebruikers: tekst van buiten.",
       vm: "Een extra laag om het harnas heen. Of toch gewoon de laptop.",
       harness: "Voert de commando's uit op de plek waar de agent draait.",
       agent: "Schrijft samen met haar het script voor de analyse.",
@@ -328,7 +328,6 @@ window.CASES = [
     arrows: { agent: "leest", mens: "kent de data, levert de analyse", between: "opdracht en goedkeuring", model: "alles wat de agent leest", rest: "wat hij bereikt" },
     slots: [
       { id: "hitl", zone: "mens", label: "Waar kijkt zij mee?" },
-      { id: "cleanup", zone: "mens", label: "De opruimklus" },
       { id: "harness", zone: "harness", label: "Welk harnas?" },
       { id: "model", zone: "model", label: "Welk model?" },
       { id: "loc", zone: "vm", label: "Waar draait de agent?" },
@@ -372,15 +371,11 @@ window.CASES = [
       { id: "per-action", slot: "hitl", title: "Elke actie goedkeuren", desc: "", detail: "", v: 3, s: 1 },
       { id: "per-batch", slot: "hitl", title: "Script en aanpak reviewen", desc: "Zij reviewt het script vóór de volledige run.", detail: "", v: 4, s: 4 },
       { id: "none-hitl", slot: "hitl", title: "Geen", desc: "De agent levert het eindresultaat.", detail: "", v: 1, s: 5 },
-      // cleanup
-      { id: "c-same", slot: "cleanup", title: "Deze agent ruimt meteen op", desc: "Hij is toch bezig.", detail: "", v: 1, s: 5 },
-      { id: "c-separate", slot: "cleanup", title: "Aparte sessie, met de opstelling uit ronde 2", desc: "Andere klus, andere opstelling.", detail: "", v: 5, s: 4 },
-      { id: "c-list", slot: "cleanup", title: "Deze agent maakt een lijst, zij voert uit", desc: "", detail: "", v: 4, s: 4.5 },
     ],
     rules: [
       // waar
       (s) => s.loc === "laptop" && { type: "risk", cap: { v: 2 }, text: "Op de laptop kan de agent bij alles: sleutels, tokens, je git-inlog, netwerkschijven." },
-      (s) => s.loc === "laptop-sandbox" && { type: "insight", cap: { v: 2 }, text: "Bij het opruimen was dit goed: daar moest de agent bij je bestanden. Hier niet. De sandbox beperkt schrijven, niet lezen: wat de agent op de laptop leest, gaat naar het model." },
+      (s) => s.loc === "laptop-sandbox" && { type: "insight", cap: { v: 2 }, text: "Bij het opruimen was dit goed: daar moest de agent bij al je bestanden. Hier heeft hij alleen de data nodig. De sandbox beperkt schrijven, niet lezen: wat de agent op de laptop leest, gaat naar het model." },
       (s) => s.loc === "laptop-sandbox" && s.harness && !sandboxHarness(s.harness) && { type: "risk", cap: { v: 1 }, text: "Dit harnas heeft " + (s.harness === "h-full" ? "op Full Access " : "") + "geen sandbox: dan is dit gewoon de laptop." },
       (s) => onLaptop(s) && s.model === "codex" && { type: "risk", cap: { v: 1 }, text: "Wat de agent op de laptop leest, gaat naar de cloud. Daar is geen netwerk voor nodig: lezen is genoeg." },
       (s) => s.loc === "remote-vm" && { type: "insight", text: "Goed afgeschermd, en Qwen bereik je ook thuis. Maar het kost geld, en de data staat nu op een VM die anderen beheren." },
@@ -427,11 +422,6 @@ window.CASES = [
       // mens
       (s) => s.hitl === "per-action" && { type: "insight", adj: { v: -1, s: -1 }, text: "Je zit de hele tijd naast de agent, en onder deadline-druk klik je binnen het uur ‘altijd toestaan’." },
       (s) => s.hitl === "none-hitl" && { type: "risk", text: "Niemand kijkt naar het script voordat het op 18.000 meldingen draait." },
-      (s) => s.cleanup === "c-same" && { type: "risk", cap: { v: 2 }, text: "Deze agent heeft gevoelige meldingen en tekst van buiten in zijn sessie, en ruimt dan ook je laptop op." + (inVm(s) ? " En in de VM is er niets van de laptop om op te ruimen." : "") },
-      (s) => s.cleanup === "c-separate" && { type: "good", text: "Twee klussen, twee opstellingen: het opruimen weet niets van de meldingen." },
-      (s) => s.cleanup === "c-list" && (inVm(s)
-        ? { type: "insight", adj: { s: -1 }, text: "In de VM ziet deze agent je laptop niet: een lijst maken kan hij niet." }
-        : { type: "risk", adj: { v: -0.5 }, text: "Voor die lijst opent deze agent je Downloads, met pdf's van buiten, in dezelfde sessie als de gevoelige meldingen." }),
       (s) => s.loc === "remote-vm" && s.model === "qwen-werk" && s.data === "sample" && sandboxHarness(s.harness) && { type: "good", text: "Veilig, en het werkt ook thuis. Wel kost het geld, en het model is trager." },
     ],
   },
