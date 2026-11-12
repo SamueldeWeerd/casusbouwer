@@ -342,14 +342,14 @@ window.CASES = [
       { id: "devcontainer", slot: "loc", title: "Devcontainer in VS Code", desc: "Eén klik, je git-inlog werkt meteen.", detail: "Draait op de laptop, met de projectmap.", v: 2, s: 4.5, from: "r1" },
       { id: "remote-vm", slot: "loc", title: "De remote VM van Rijkswaterstaat", desc: "Voor dit project opgezet en goedgekeurd, beheerd door anderen.", detail: "Kost geld per maand. Bereikt Qwen op de servers van Rijkswaterstaat, ook thuis.", v: 4, s: 3.5, from: "r1" },
       // harness
-      { id: "h-codex", slot: "harness", title: "Codex met sandbox", desc: "Met Qwen op de servers van Rijkswaterstaat als model.", detail: "Open source, van OpenAI. Geen netwerk voor commando's.", v: 4, s: 3.5 },
+      { id: "h-codex", slot: "harness", title: "Codex met sandbox", desc: "Schrijven alleen in de projectmap, geen netwerk voor commando's.", detail: "Open source, van OpenAI.", v: 4, s: 3.5 },
       { id: "h-codex-auto", slot: "harness", title: "Codex met sandbox en auto-review", desc: "Als Codex met sandbox, maar wil hij eruit, dan beslist een reviewmodel van OpenAI in plaats van zij.", detail: "Werkt alleen met een model van OpenAI.", v: 3.5, s: 4 },
       { id: "h-full", slot: "harness", title: "Codex op Full Access", desc: "Geen sandbox en geen vragen.", detail: "", v: 1, s: 5 },
       { id: "h-qwencode", slot: "harness", title: "Qwen Code met sandbox", desc: "Geen netwerk voor commando's.", detail: "Open source, van Alibaba. De sandbox werkt alleen op Linux.", v: 4, s: 3 },
-      { id: "h-claude", slot: "harness", title: "Claude Code met Qwen, sandbox aan", desc: "Claude Code als harnas, Qwen op de servers van Rijkswaterstaat als model.", detail: "Van Anthropic. De sandbox zet je zelf aan.", v: 4, s: 3.5 },
-      { id: "h-openhands", slot: "harness", title: "OpenHands met Docker-sandbox", desc: "Elke sessie in een eigen container. Werkt met elk model.", detail: "Open source, met een webinterface.", v: 4, s: 3.5 },
-      { id: "h-cline", slot: "harness", title: "Cline in VS Code met auto-approve", desc: "Vertrouwd, werkt met Qwen. Het model bepaalt zelf welke commando's veilig zijn.", detail: "Geen sandbox.", v: 2, s: 5 },
-      { id: "h-opencode", slot: "harness", title: "opencode met permissies", desc: "Voor commando's vraagt hij, gevoelige paden zijn verboden.", detail: "Werkt met elk model.", v: 2, s: 4 },
+      { id: "h-claude", slot: "harness", title: "Claude Code met sandbox", desc: "Geen netwerk voor commando's.", detail: "Van Anthropic. De sandbox staat standaard uit: die zet je zelf aan.", v: 4, s: 3.5 },
+      { id: "h-openhands", slot: "harness", title: "OpenHands met Docker-sandbox", desc: "Elke sessie in een eigen container.", detail: "Open source, met een webinterface.", v: 4, s: 3.5 },
+      { id: "h-cline", slot: "harness", title: "Cline in VS Code met auto-approve", desc: "Vertrouwd. Het model bepaalt zelf welke commando's veilig zijn.", detail: "Geen sandbox.", v: 2, s: 5 },
+      { id: "h-opencode", slot: "harness", title: "opencode met permissies", desc: "Voor commando's vraagt hij, gevoelige paden zijn verboden.", detail: "", v: 2, s: 4 },
       // net
       { id: "net-open", slot: "net", title: "Internet open", desc: "pip, documentatie, alles werkt.", detail: "", v: 1, s: 5 },
       { id: "net-sandbox", slot: "net", title: "Netwerk uit in de sandbox van het harnas", desc: "Commando's krijgen geen netwerk; de verbinding met het model blijft.", detail: "Werkt alleen in een harnas met sandbox.", v: 3, s: 4 },
@@ -394,7 +394,7 @@ window.CASES = [
       (s) => s.harness === "h-codex-auto" && s.model && (s.model === "codex"
         ? { type: "insight", adj: { v: -0.5 }, text: "Wil de agent de sandbox uit, dan beslist een reviewmodel van OpenAI, niet zij. Dat leest de sessie mee, met gevoelige meldingen erin, en kan zich vergissen." }
         : { type: "risk", adj: { s: -2 }, text: "Met Qwen werkt auto-review niet: Codex vraagt om een eigen reviewmodel van OpenAI, dat er dan niet is, en weigert alles buiten de sandbox (getest)." }),
-      (s) => s.harness === "h-claude" && { type: "insight", text: "‘Claude Code’ zegt niets over het model: de meldingen gaan naar Qwen bij Rijkswaterstaat, niet naar Anthropic. Wel gaan standaard gebruiksgegevens naar Anthropic." },
+      (s) => s.harness === "h-claude" && { type: "insight", text: "Claude Code is alleen het harnas: de meldingen gaan naar het gekozen model, niet naar Anthropic. Wel gaan standaard gebruiksgegevens naar Anthropic." + (s.model === "codex" ? " En Codex Enterprise gebruik je normaal via Codex zelf, niet via Claude Code." : "") },
       (s) => s.harness === "h-qwencode" && s.model === "codex" && { type: "insight", text: "Codex Enterprise gebruik je normaal via Codex zelf, niet via Qwen Code." },
       // netwerk
       (s) => s.net === "net-open" && { type: "risk", cap: { v: 2 }, text: "Gevoelige data, tekst van buiten en een weg naar buiten: één melding hoeft alleen nog om een upload te vragen." },
