@@ -44,25 +44,7 @@
     const c = cur(), b = block(c, blockId);
     if (!b) return;
     cs().sel[b.slot] = blockId;
-    if (cs().carried) delete cs().carried[b.slot];
     save(); render();
-  }
-
-  // Lege vakken vullen met de keuze uit een eerdere ronde, als dat blok hier ook bestaat.
-  function applyCarry(c, data) {
-    let changed = false;
-    c.slots.filter((sl) => sl.carry && !data.sel[sl.id]).forEach((sl) => {
-      for (const [from, slot] of sl.carry) {
-        const id = state.cases[from]?.sel[slot];
-        if (id && c.blocks.some((b) => b.id === id && b.slot === sl.id)) {
-          data.sel[sl.id] = id;
-          (data.carried ||= {})[sl.id] = from;
-          changed = true;
-          break;
-        }
-      }
-    });
-    if (changed) save();
   }
 
   // ── Beoordeling (deterministisch) ────────────────────────────────────
@@ -228,7 +210,6 @@
     document.body.classList.toggle("view-case", state.view === "case");
     document.body.classList.toggle("view-board", state.view === "board");
     document.querySelectorAll(".mobile-nav button").forEach((b) => b.classList.toggle("active", b.dataset.view === state.view));
-    applyCarry(cur(), cs());
     renderTabs();
     renderSide();
     renderBar();
@@ -258,11 +239,6 @@
       <button type="button" class="btn primary" id="evaluate" ${done < total ? "disabled" : ""}>${hasEval(data) ? "Beoordeel opnieuw" : "Beoordeel deze opstelling"}</button>`;
   }
 
-  function badges(b, carriedFrom) {
-    return [
-      carriedFrom ? `<span class="badge from">Uit ${esc(labelOf(carriedFrom).toLowerCase())}</span>` : "",
-    ].join("");
-  }
 
 
   // ── Schetsjes per zone ───────────────────────────────────────────────
@@ -493,7 +469,6 @@
         ${sl.optional ? '<span class="sq-tag">Sidequest</span>' : ""}<span class="slot-label">${esc(sl.label)}</span>
         <span class="slot-title">${esc(b.title)}</span>
         ${b.desc ? `<span class="slot-desc">${esc(b.desc)}</span>` : ""}
-        <span class="slot-badges">${badges(b, data.carried?.[sl.id])}</span>
       </button>`;
   }
 
@@ -517,7 +492,7 @@
         const current = data.sel[slotId] === b.id;
         return `
           <button type="button" class="option${current ? " current" : ""}" data-pick="${b.id}">
-            <span class="option-head"><span class="option-title">${esc(b.title)}</span>${current ? '<span class="badge current">Huidige keuze</span>' : ""}${badges(b)}</span>
+            <span class="option-head"><span class="option-title">${esc(b.title)}</span>${current ? '<span class="badge current">Huidige keuze</span>' : ""}</span>
             ${b.desc ? `<span class="option-desc">${esc(b.desc)}</span>` : ""}
             ${b.detail ? `<span class="option-detail">${esc(b.detail)}</span>` : ""}
           </button>`;

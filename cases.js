@@ -5,7 +5,6 @@
 // Scores per blok: v = veiligheid, s = eenvoud (makkelijk werken, weinig op de agent letten), elk 1–5. Totaal = 1,5 × v + s.
 // from: id van een eerdere ronde waar dit blok op lijkt (alleen voor het draaiboek; de app toont het niet).
 // selfEval: groepjes beoordelen hun opstelling zelf.
-// carry: [[ronde-id, vak-id], …] vult een leeg vak met de keuze uit een eerdere ronde, als dat blok hier bestaat.
 // Regels krijgen (s): s[vak] = gekozen blok-id.
 // Een regel geeft { type, text, cap: {v: n}, adj: {v,s}, ignoreMin: [vak] }, een lijst daarvan, of null.
 // type: "risk" (risico), "insight" (inzicht), "good" (sterk punt).
@@ -301,7 +300,7 @@ window.CASES = [
       "Een data scientist moet vrijdag een analyse opleveren van 18.000 storingsmeldingen over bruggen, tunnels en sluizen. Daarin staan zwakke plekken, beveiligingsdetails en namen van bestuurders. De export staat op de netwerkschijf.",
       "Ze wil samen met de agent een script schrijven. Git gebruikt ze alleen lokaal, om versies en opschoonrondes vast te leggen. En als het kan, ruimt de agent meteen haar Downloads op.",
     ],
-    task: "Bouw een veilige opstelling voor deze gevoelige data. Jullie keuzes uit ronde 1 en 2 staan al ingevuld waar ze passen: kloppen ze hier nog? Daarna vertellen jullie klassikaal wat jullie kozen, en waarom.",
+    task: "Bouw een veilige opstelling voor deze gevoelige data. Daarna vertellen jullie klassikaal wat jullie kozen, en waarom.",
     facts: [
       "Een deel van de meldingen komt van aannemers en weggebruikers: tekst van buiten.",
       "Op haar laptop is ze in twee uur klaar.",
@@ -330,16 +329,16 @@ window.CASES = [
     slots: [
       { id: "hitl", zone: "mens", label: "Waar kijkt zij mee?" },
       { id: "cleanup", zone: "mens", label: "De opruimklus" },
-      { id: "harness", zone: "harness", label: "Welk harnas?", carry: [["r2", "harness"]] },
-      { id: "model", zone: "model", label: "Welk model?", carry: [["r2", "model"]] },
-      { id: "loc", zone: "vm", label: "Waar draait de agent?", carry: [["r1", "loc"]] },
+      { id: "harness", zone: "harness", label: "Welk harnas?" },
+      { id: "model", zone: "model", label: "Welk model?" },
+      { id: "loc", zone: "vm", label: "Waar draait de agent?" },
       { id: "data", zone: "data", label: "Welke data ziet de agent?" },
-      { id: "net", zone: "internet", label: "Wat mag de agent naar buiten?", carry: [["r2", "net"]] },
+      { id: "net", zone: "internet", label: "Wat mag de agent naar buiten?" },
     ],
     blocks: [
       // loc
       { id: "laptop", slot: "loc", title: "Gewoon op de laptop", desc: "Alles staat klaar.", detail: "", v: 1, s: 5 },
-      { id: "laptop-sandbox", slot: "loc", title: "Laptop + sandbox van het harnas", desc: "Schrijven alleen in de projectmap, geen netwerk voor commando's.", detail: "Zoals bij het opruimen in ronde 2.", v: 2, s: 4.5, from: "r2" },
+      { id: "laptop-sandbox", slot: "loc", title: "Laptop + sandbox van het harnas", desc: "Schrijven alleen in de projectmap, geen netwerk voor commando's.", detail: "", v: 2, s: 4.5, from: "r2" },
       { id: "local-vm", slot: "loc", title: "VM op je laptop, afgesloten", desc: "Alleen de projectmap gedeeld, niets doorgestuurd.", detail: "Gratis. Eén keer opzetten, samen met GPT-6.1. Het model draait elders. Thuis bereikt hij de servers van Rijkswaterstaat niet.", v: 4, s: 3.5 },
       { id: "devcontainer", slot: "loc", title: "Devcontainer in VS Code", desc: "Eén klik, je git-inlog werkt meteen.", detail: "Draait op de laptop, met de projectmap.", v: 2, s: 4.5, from: "r1" },
       { id: "remote-vm", slot: "loc", title: "De remote VM van Rijkswaterstaat", desc: "Voor dit project opgezet en goedgekeurd, beheerd door anderen.", detail: "Kost geld per maand. Bereikt Qwen op de servers van Rijkswaterstaat, ook thuis.", v: 4, s: 3.5, from: "r1" },
