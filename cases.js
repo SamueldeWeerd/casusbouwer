@@ -363,7 +363,6 @@ window.CASES = [
       { id: "qwen-werk", slot: "model", title: "Qwen op de servers van Rijkswaterstaat", desc: "Data blijft bij Rijkswaterstaat. Bereikbaar op kantoor en vanuit de remote VM.", detail: "Minder slim en trager. Een Chinees model.", v: 4, s: 3.5 },
       { id: "codex", slot: "model", title: "GPT-modellen via Azure OpenAI (cloud van Microsoft)", desc: "Het slimst en het snelst.", detail: "Wat de agent leest, gaat naar de cloud van Microsoft.", v: 2, s: 5 },
       { id: "local-model", slot: "model", title: "Een eigen model op je laptop", desc: "Een kleinere Qwen. Werkt ook thuis.", detail: "Het minst slim. Ook Chinees.", v: 4, s: 1.5 },
-      { id: "openwebui-search", slot: "model", title: "Qwen in Open WebUI, met web search", desc: "Kan ook documentatie opzoeken op internet.", detail: "", v: 2, s: 4.5 },
       // data
       { id: "raw", slot: "data", title: "De volledige ruwe export", desc: "18.000 meldingen, met zwakke plekken en namen.", detail: "", v: 1, s: 4.5 },
       { id: "ds-clean", slot: "data", title: "Zij schoont eerst zelf op, zonder AI", desc: "Met een script of zoeken-en-vervangen haalt ze namen en objectnamen uit alle meldingen.", detail: "", v: 3, s: 3 },
@@ -414,7 +413,6 @@ window.CASES = [
       (s) => s.model === "codex" && s.data === "sample" && { type: "insight", cap: { v: 3 }, text: "Opgeschoonde vrije tekst blijft lastig: namen staan midden in zinnen, en een tunnel is herkenbaar aan zijn ligging." },
       (s) => s.model === "local-model" && { type: "insight", adj: { s: -0.5 }, text: "Het minst slimme model: meer fouten, en dat met een deadline. Wel blijft alles op je laptop." },
       (s) => isQwen(s.model) && { type: "insight", text: "Qwen is een Chinees model. Het cloudbeleid van het Rijk sluit diensten uit landen met een offensief cyberprogramma uit (§4.2), maar Qwen op eigen servers is geen dienst van Alibaba. Wat telt, is de weg naar buiten." },
-      (s) => s.model === "openwebui-search" && { type: "insight", cap: { v: 2 }, text: "Web search is een weg naar buiten, ook als het netwerk van de agent dicht is." },
       (s) => s.data === "raw" && isQwen(s.model) && { type: "risk", cap: { v: 2.5 }, text: "De agent leest alle 18.000 ruwe meldingen: alle namen en zwakke plekken, en elke verborgen instructie. Het model houdt ze wel binnen." },
       (s) => s.data === "ds-clean" && (s.model === "codex"
         ? { type: "insight", cap: { v: 2 }, text: "Een script zonder AI vervangt wat het kent, maar mist namen midden in zinnen, en een tunnel blijft herkenbaar aan zijn ligging. Wat het mist, gaat naar de cloud van Microsoft." }
