@@ -7,7 +7,6 @@
     { id: "v", label: "Veiligheid", hint: "telt 1,5 keer", w: 1.5 },
     { id: "s", label: "Eenvoud", hint: "makkelijk werken, weinig opletten" },
   ];
-  const MAX_TOTAL = AXES.reduce((a, x) => a + 5 * (x.w || 1), 0);
   const nl = (n) => String(n).replace(".", ","); // 11.6 → 11,6
   const band = (n) => (n >= 4 ? 2 : n >= 3 ? 1 : 0);
   const BAND_CLASS = ["band-low", "band-mid", "band-high"];
@@ -147,7 +146,7 @@
     return box("Zo werkt het", `
       <p>${where} in elk vak één blok. Elke opstelling krijgt een score op twee punten:</p>
       <div class="ax-tiles">${tiles}</div>
-      <p class="small muted">Totaal = 1,5 × veiligheid + eenvoud, maximaal ${nl(MAX_TOTAL)} punten. Er is geen perfect antwoord: het gaat om de afweging.</p>`, "how");
+      <p class="small muted">Totaal = 1,5 × veiligheid + eenvoud. Er is geen perfect antwoord en geen maximumscore: de scores zijn er om de opstellingen van de groepjes met elkaar te vergelijken.</p>`, "how");
   }
 
   function renderSide() {
@@ -165,7 +164,7 @@
     if (c.carrySummary) {
       const rounds = before.filter((p) => p.selfEval).map((p) => {
         const ev = [...state.cases[p.id].log].reverse().find((e) => e.t === "eval");
-        return `<span class="pill">${esc(p.label)}</span> ${esc(p.title)}: ${ev ? `<b>${nl(ev.snap.total)}</b> / ${nl(MAX_TOTAL)}` : "nog niet beoordeeld"}`;
+        return `<span class="pill">${esc(p.label)}</span> ${esc(p.title)}: ${ev ? `<b>${nl(ev.snap.total)}</b>` : "nog niet beoordeeld"}`;
       });
       out.push(box("Jullie scores per ronde", list(rounds), "carry", "trophy"));
     }
@@ -210,12 +209,12 @@
       <div class="scorecard">
         <div class="score-top">
           <span>Totaal</span>
-          <span class="total"><b>${nl(r.total)}</b> / ${nl(MAX_TOTAL)}</span>
+          <span class="total"><b>${nl(r.total)}</b></span>
         </div>
         <div class="score-line">${AXES.map((a) => `<span class="ax-chip ax-${a.id}">${mini(a.id)}${a.label} <b class="${BAND_CLASS[band(r.scores[a.id])]}">${nl(r.scores[a.id])}</b>${a.w ? ` <span class="muted">×${nl(a.w)}</span>` : ""}</span>`).join("")}</div>
         <details class="calc">
           <summary>Hoe is dit berekend?</summary>
-          <ul>${["v", "s"].map(line).join("")}<li><b>Totaal ${nl(r.total)}</b> = 1,5 × veiligheid + eenvoud (maximaal 12,5).</li></ul>
+          <ul>${["v", "s"].map(line).join("")}<li><b>Totaal ${nl(r.total)}</b> = 1,5 × veiligheid + eenvoud.</li></ul>
           <table>
             <thead><tr><th>Vak</th><th>Blok</th><th title="Veiligheid">V</th><th title="Eenvoud">S</th></tr></thead>
             <tbody>${k.rows.map((row) => `<tr${row.ignored ? ' class="ignored" title="Telt niet mee als zwakste schakel"' : ""}><td>${esc(row.slot)}</td><td>${esc(row.title)}</td><td>${nl(row.v)}</td><td>${nl(row.s)}</td></tr>`).join("")}</tbody>
@@ -544,7 +543,7 @@
     const ev = [...data.log].reverse().find((e) => e.t === "eval");
     if (ev) {
       const r = ev.snap.scores;
-      lines.push("", `Laatste score: veiligheid ${nl(r.v)}, eenvoud ${nl(r.s)} (totaal ${nl(ev.snap.total)}/12,5)`);
+      lines.push("", `Laatste score: veiligheid ${nl(r.v)}, eenvoud ${nl(r.s)} (totaal ${nl(ev.snap.total)})`);
     }
     return lines.join("\n");
   }
