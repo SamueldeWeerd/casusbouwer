@@ -366,9 +366,9 @@ window.CASES = [
       { id: "openwebui-search", slot: "model", title: "Qwen in Open WebUI, met web search", desc: "Kan ook documentatie opzoeken op internet.", detail: "", v: 2, s: 4.5 },
       // data
       { id: "raw", slot: "data", title: "De volledige ruwe export", desc: "18.000 meldingen, met zwakke plekken en namen.", detail: "", v: 1, s: 4.5 },
-      { id: "agent-pseudo", slot: "data", title: "Agent schoont eerst zelf op", desc: "De agent vervangt eerst zelf namen en objectnamen door codes.", detail: "", v: 2, s: 4 },
-      { id: "qwen-pseudo", slot: "data", title: "Qwen schoont eerst alles op", desc: "Qwen haalt eerst namen en details uit alle meldingen; de agent werkt met de schone tekst.", detail: "", v: 2, s: 3.5, from: "r2" },
-      { id: "sample", slot: "data", title: "Opgeschoonde steekproef", desc: "200 meldingen, namen en objecten vervangen door codes. Het script draait daarna zonder agent op alles.", detail: "", v: 5, s: 4 },
+      { id: "ds-clean", slot: "data", title: "Zij schoont eerst zelf op, zonder AI", desc: "Met een script of zoeken-en-vervangen haalt ze namen en objectnamen uit alle meldingen.", detail: "", v: 3, s: 3 },
+      { id: "qwen-pseudo", slot: "data", title: "Zij schoont eerst op met Qwen of een ander lokaal model", desc: "Het model haalt namen en details uit alle meldingen; de agent werkt met de schone tekst.", detail: "", v: 3, s: 3.5 },
+      { id: "sample", slot: "data", title: "Zij maakt zelf een geanonimiseerde steekproef", desc: "Met de hand, 200 meldingen, en die geeft ze aan de agent. Het script draait daarna zonder agent op alles.", detail: "", v: 5, s: 3.5 },
       // hitl
       { id: "per-action", slot: "hitl", title: "Elke actie goedkeuren", desc: "", detail: "", v: 3, s: 1 },
       { id: "per-batch", slot: "hitl", title: "Script en aanpak reviewen", desc: "Zij reviewt het script vóór de volledige run.", detail: "", v: 4, s: 4 },
@@ -410,16 +410,19 @@ window.CASES = [
         ? { type: "risk", text: qwenNews + " Hier zou zo'n upload slagen, bij elk model. Een ander model kiezen verandert dat niet." }
         : { type: "good", text: qwenNews + " Hier loopt zo'n poging dood." }),
       // model en data
-      (s) => s.model === "codex" && ["raw", "agent-pseudo"].includes(s.data) && { type: "risk", cap: { v: 1 }, text: "Zwakke plekken van tunnels en bruggen en namen van bestuurders gaan naar de cloud van Microsoft, een Amerikaanse leverancier. Ook als die in de EU verwerkt, raadt het cloudbeleid van het Rijk dat af voor vitale infrastructuur (§4.3)." },
+      (s) => s.model === "codex" && s.data === "raw" && { type: "risk", cap: { v: 1 }, text: "Zwakke plekken van tunnels en bruggen en namen van bestuurders gaan naar de cloud van Microsoft, een Amerikaanse leverancier. Ook als die in de EU verwerkt, raadt het cloudbeleid van het Rijk dat af voor vitale infrastructuur (§4.3)." },
       (s) => s.model === "codex" && s.data === "sample" && { type: "insight", cap: { v: 3 }, text: "Opgeschoonde vrije tekst blijft lastig: namen staan midden in zinnen, en een tunnel is herkenbaar aan zijn ligging." },
       (s) => s.model === "local-model" && { type: "insight", adj: { s: -0.5 }, text: "Het minst slimme model: meer fouten, en dat met een deadline. Wel blijft alles op je laptop." },
       (s) => isQwen(s.model) && { type: "insight", text: "Qwen is een Chinees model. Het cloudbeleid van het Rijk sluit diensten uit landen met een offensief cyberprogramma uit (§4.2), maar Qwen op eigen servers is geen dienst van Alibaba. Wat telt, is de weg naar buiten." },
       (s) => s.model === "openwebui-search" && { type: "insight", cap: { v: 2 }, text: "Web search is een weg naar buiten, ook als het netwerk van de agent dicht is." },
-      (s) => s.data === "agent-pseudo" && { type: "insight", cap: { v: isQwen(s.model) ? 3 : 1 }, text: "Om op te schonen moet de agent eerst alles lezen: alle ruwe data gaat dus toch naar het model." },
+      (s) => s.data === "raw" && isQwen(s.model) && { type: "risk", cap: { v: 2.5 }, text: "De agent leest alle 18.000 ruwe meldingen: alle namen en zwakke plekken, en elke verborgen instructie. Het model houdt ze wel binnen." },
+      (s) => s.data === "ds-clean" && (s.model === "codex"
+        ? { type: "insight", cap: { v: 2 }, text: "Een script zonder AI vervangt wat het kent, maar mist namen midden in zinnen, en een tunnel blijft herkenbaar aan zijn ligging. Wat het mist, gaat naar de cloud van Microsoft." }
+        : s.model && { type: "insight", cap: { v: 3 }, text: "Een script zonder AI vervangt wat het kent, maar mist namen midden in zinnen. En de agent leest nog steeds alle 18.000 meldingen, ook die met een verborgen instructie." }),
       (s) => s.data === "qwen-pseudo" && (s.model === "codex"
         ? { type: "insight", cap: { v: 2 }, text: "Een taalmodel is geen betrouwbaar filter: wat Qwen mist, gaat alsnog naar de cloud van Microsoft." }
-        : { type: "insight", cap: { v: 3 }, adj: { s: -0.5 }, text: "Met Qwen als model blijft alles al bij Rijkswaterstaat: de extra stap kost tijd en levert niets op." }),
-      (s) => s.data === "sample" && { type: "good", text: "De agent heeft niet alle data nodig: sneller én veiliger." },
+        : s.model && { type: "insight", cap: { v: 3 }, text: "Met Qwen als model blijft alles al bij Rijkswaterstaat: de extra stap kost tijd. Een taalmodel is geen betrouwbaar filter, en de agent leest nog steeds alle 18.000 meldingen, ook die met een verborgen instructie." }),
+      (s) => s.data === "sample" && { type: "good", text: "De agent heeft niet alle data nodig. En wat hij leest, heeft zij zelf gezien: een verborgen instructie valt dan op. Met de hand kost het haar wel tijd." },
       // mens
       (s) => s.hitl === "per-action" && { type: "insight", adj: { v: -1, s: -1 }, text: "Je zit de hele tijd naast de agent, en onder deadline-druk klik je binnen het uur ‘altijd toestaan’." },
       (s) => s.hitl === "none-hitl" && { type: "risk", text: "Niemand kijkt naar het script voordat het op 18.000 meldingen draait." },
