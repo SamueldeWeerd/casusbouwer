@@ -168,9 +168,6 @@
       });
       out.push(box("Jullie scores per ronde", list(rounds), "carry", "trophy"));
     }
-    // In de eindronde staat dit alleen in de antwoordsleutel: de groepjes moeten het zelf terughalen.
-    const known = before.flatMap((p) => p.unlocks.map((u) => `<span class="pill">${esc(p.label)}</span> ${esc(u)}`));
-    if (known.length && c.selfEval) out.push(`<details class="info known"><summary class="info-head">${mini("check")}<span>Wat je al weet uit eerdere rondes</span></summary>${list(known, "checks")}</details>`);
     const evals = data.log.filter((e) => e.t === "eval");
     if (evals.length) out.push(evalBox(evals));
     $("side").innerHTML = out.join("");

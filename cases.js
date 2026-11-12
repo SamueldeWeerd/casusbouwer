@@ -201,17 +201,6 @@ window.CASES = [
       (s) => s.ci === "ci-noinet" && { type: "good", text: "De code van de agent draait op de runner, maar kan niets naar buiten sturen. Niemand hoeft daarvoor eerst alle tests te lezen. Na de merge gaat de code wel live." },
       (s) => s.ci === "ci-noinet" && s.git === "g-agent" && s.auth === "a-bot" && { type: "good", ignoreMin: ["git"], adj: { v: 0.5 }, text: "Met een smal token en een runner zonder internet kan de code van de agent niets naar buiten sturen, ook als hij zelf pusht." },
     ],
-    unlocks: [
-      "De agent draait als de ontwikkelaar: wat die kan, kan de agent ook.",
-      "Een afspraak is geen slot. Afdwingen doen de rechten van het token in GitLab, of de sandbox.",
-      "Een token in een bestand leest de agent gewoon, ook in de sandbox. Een token in de sleutelhanger houdt de sandbox dicht, zonder sandbox niet.",
-      "De code van de agent draait ook als hij zelf niet pusht: in de pipeline.",
-      "Na de merge draait de code overal. Wie merget, bepaalt wat er live gaat.",
-      "Een runner zonder internet: de code van de agent draait, maar kan niets naar buiten sturen.",
-      "Een VM houdt de agent weg van de laptop. Een gewone devcontainer stuurt je inlog juist door.",
-      "Een sandbox met een eigen profiel zet je één keer goed op, samen met GPT-6.1. Daarna kun je de touwtjes losser laten.",
-      "Wat de agent leest, gaat naar het model. Bij een cloudmodel dus ook wat hij op de laptop tegenkomt.",
-    ],
   },
 
   // ───────────────────────────── RONDE 2 ─────────────────────────────
@@ -300,11 +289,6 @@ window.CASES = [
       (s) => s.delete === "d-list" && { type: "insight", text: "Een lijst van 300 regels lees je niet echt. Eén verkeerd pad en het is weg." },
       (s) => s.delete === "d-quarantine" && { type: "good", adj: { v: 0.5 }, text: "Omkeerbaar: een fout van de agent of van jou kost niets." },
       (s) => s.delete === "d-backup" && { type: "insight", text: "Helpt, als de back-up recent is en terugzetten werkt. Onder tijdsdruk wordt hij vaak overgeslagen." },
-    ],
-    unlocks: [
-      "Een lokaal model beschermt je data, niet je bestanden.",
-      "Niet de herkomst van het model bepaalt het risico, maar de route naar buiten.",
-      "Onomkeerbare acties: verplaatsen, niet weggooien.",
     ],
   },
 
@@ -488,6 +472,5 @@ window.CASES = [
         : { type: "risk", adj: { v: -0.5 }, text: "Voor die lijst opent deze agent je Downloads, met pdf's van buiten, in dezelfde sessie als de gevoelige meldingen." }),
       (s) => s.loc === "remote-vm" && s.model === "qwen-werk" && s.data === "sample" && sandboxHarness(s.harness) && { type: "good", text: "Veilig, en het werkt ook thuis. Wel kost het geld, en het model is trager." },
     ],
-    unlocks: [],
   },
 ];

@@ -214,7 +214,6 @@ b { font-weight: 650; }
 details.info summary { cursor: pointer; font-weight: 650; }
 details.info summary.info-head { margin: 0; }
 details.info[open] summary { margin-bottom: 6px; }
-.info.known { --tone-soft: var(--good-soft); border-left: 4px solid var(--good); }
 .info-list.checks { list-style: none; padding-left: 0; }
 .info-list.checks li { position: relative; padding-left: 22px; }
 .info-list.checks li::before { content: "✓"; position: absolute; left: 2px; top: 0; color: var(--good); font-weight: 800; }
