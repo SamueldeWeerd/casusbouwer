@@ -171,7 +171,7 @@ window.CASES = [
         ? { type: "risk", adj: { s: -2 }, text: "De VM bereikt het model op je laptop niet. Dit werkt niet." }
         : { type: "insight", adj: { s: -0.5 }, text: "Werkt ook thuis. Maar het minst slimme model: meer fouten, meer werk voor de ontwikkelaar." }),
       (s) => isQwen(s.model) && { type: "insight", text: "Qwen is een Chinees model. Niet de herkomst bepaalt het risico, maar de weg naar buiten: " + (sbx(s) ? "in de sandbox hebben zijn commando's geen netwerk." : "zonder sandbox kunnen zijn commando's het internet op.") + " Meer in ronde 2." },
-      (s) => sbx(s) && { type: "good", text: "In de repo werkt de agent zonder vragen. Voor netwerk, git en alles buiten de repo vraagt hij het " + (s.perm === "h-autoreview" ? "de reviewer." : "de ontwikkelaar.") + " Lezen buiten de repo kan wel." },
+      (s) => sbx(s) && { type: "good", text: "In de repo werkt de agent zonder vragen. Voor netwerk, git en alles buiten de repo vraagt hij " + (s.perm === "h-autoreview" ? "de reviewer" : "de ontwikkelaar") + " om toestemming." + " Lezen buiten de repo kan wel." },
       (s) => sbx(s) && ["a-pat", "a-credman"].includes(s.auth) && !["ci-review", "ci-noinet"].includes(s.ci) && { type: "risk", adj: { v: -0.5 }, text: "In de sandbox kan de agent zelf niets met het token. Maar hij kan het lezen en in de code zetten, en die code draait na de push op de runner, met internet." },
       // pullen en pushen
       (s) => s.git === "g-agent" && (noAsk(s)
