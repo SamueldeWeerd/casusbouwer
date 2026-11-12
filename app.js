@@ -384,9 +384,9 @@
       </g>
     </svg>`;
 
-  // Ronde 2: de laptop met Downloads (vol tekst van buiten), documenten, ~/.ssh en conda; rechts de prullenbak.
+  // Ronde 2: de laptop met Downloads (vol tekst van buiten), documenten, ~/.ssh en conda; rechts de quarantainemap.
   const LAPTOP_SKETCH = `
-    <svg class="sketch sketch-laptop" viewBox="0 0 640 150" role="img" aria-label="Schets: een laptop met de mappen Downloads, Documenten, ~/.ssh en conda. Van internet komen downloads binnen, tekst van buiten. Rechts een prullenbak: weg is weg.">
+    <svg class="sketch sketch-laptop" viewBox="0 0 640 150" role="img" aria-label="Schets: een laptop met de mappen Downloads, Documenten, ~/.ssh en conda. Van internet komen downloads binnen, tekst van buiten. Rechts de quarantainemap, die je later zelf leegt.">
       <g class="sk">
         <circle class="globe" cx="56" cy="48" r="20"/><ellipse cx="56" cy="48" rx="8" ry="20"/><path d="M36 48 h40"/>
         <path class="push" d="M80 56 q50 12 98 -2"/><path class="push" d="M169 47 l10 7 l-10 8"/>
@@ -397,7 +397,7 @@
         <path class="card hot" d="M342 34 h18 l5 6 h33 v32 h-56 z"/>
         <rect class="card" x="420" y="36" width="52" height="10" rx="2"/><rect class="card" x="420" y="50" width="52" height="10" rx="2"/><rect class="card" x="420" y="64" width="52" height="10" rx="2"/>
         <path class="push" d="M492 70 q28 -4 50 4"/><path class="push" d="M533 66 l10 8 l-11 6"/>
-        <path d="M552 46 h58 M570 46 v-7 h22 v7"/><path class="card" d="M558 50 l5 50 h36 l5 -50 z"/><path d="M572 60 l2 32 M581 60 v32 M590 60 l-2 32"/>
+        <path class="card" d="M552 52 h20 l5 6 h35 v40 h-60 z"/>
       </g>
       <g class="sk-text">
         <text x="56" y="86" text-anchor="middle" class="sm">internet</text>
@@ -407,8 +407,8 @@
         <text x="370" y="88" text-anchor="middle" class="sm">~/.ssh</text>
         <text x="446" y="88" text-anchor="middle" class="sm">conda</text>
         <text x="320" y="108" text-anchor="middle" class="sm">en je git-inlog, netwerkschijven, VPN</text>
-        <text x="518" y="60" text-anchor="middle" class="sm">rm</text>
-        <text x="582" y="118" text-anchor="middle" class="sm">weg is weg</text>
+        <text x="518" y="60" text-anchor="middle" class="sm">verplaatsen</text>
+        <text x="582" y="118" text-anchor="middle" class="sm">quarantaine</text>
       </g>
     </svg>`;
 
