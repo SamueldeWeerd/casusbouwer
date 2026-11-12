@@ -252,12 +252,10 @@ window.CASES = [
       { id: "look-all", slot: "look", title: "Alles, ook wat erin staat", desc: "Hij opent bestanden om te zien wat ze zijn.", detail: "Nauwkeurig: hij weet wat hij voorstelt.", v: 3, s: 5 },
       { id: "look-names", slot: "look", title: "Alleen namen, grootte en datum", desc: "Je draagt hem op geen bestanden te openen. Daaruit stelt hij voor wat weg kan.", detail: "Minder nauwkeurig: hij weet niet wat erin staat.", v: 4, s: 3.5 },
       // harness
-      { id: "h-codex", slot: "harness", title: "Codex met sandbox", desc: "Hij kan overal kijken. Voor elke verplaatsing naar de quarantainemap vraagt hij het jou.", detail: "Alleen in de quarantainemap mag hij zelf schrijven en weggooien.", v: 4, s: 3.5 },
-      { id: "h-codex-profile", slot: "harness", title: "Codex met sandbox en een eigen profiel (opgesteld samen met GPT-6.1)", desc: "Als Codex met sandbox, plus een profiel dat je sleutels en tokens afschermt.", detail: "Eén keer goed opstellen.", v: 4.5, s: 4 },
-      { id: "h-codex-home", slot: "harness", title: "Codex met sandbox, je hele home-map als werkmap", desc: "Hij mag overal in je home-map verplaatsen en weggooien, zonder te vragen. Geen netwerk.", detail: "", v: 2.5, s: 5 },
-      { id: "h-codex-auto", slot: "harness", title: "Codex met sandbox en auto-review (‘Approve for me’)", desc: "Als Codex met sandbox, maar een reviewmodel van OpenAI keurt de verplaatsingen goed in plaats van jij.", detail: "Werkt alleen met een model van OpenAI.", v: 3.5, s: 4.5 },
+      { id: "h-codex-profile", slot: "harness", title: "Codex met sandbox en eigen profiel (opgesteld samen met GPT-6.1), de quarantainemap als werkmap", desc: "Hij kijkt overal, behalve bij je sleutels en tokens. Voor elke verplaatsing vraagt hij jou.", detail: "Zelf weggooien kan hij alleen in de quarantainemap.", v: 4.5, s: 3.5 },
+      { id: "h-codex-auto", slot: "harness", title: "Codex met sandbox en eigen profiel, auto-review, de quarantainemap als werkmap", desc: "Als hierboven, maar een reviewmodel van OpenAI keurt de verplaatsingen goed in plaats van jij.", detail: "Werkt alleen met een model van OpenAI.", v: 4, s: 4.5 },
+      { id: "h-codex-home", slot: "harness", title: "Codex met sandbox en eigen profiel, je home-map als werkmap", desc: "Hij verplaatst en gooit weg in je home-map zonder te vragen. Je sleutels en tokens kan hij niet lezen of weggooien. Geen netwerk.", detail: "", v: 3, s: 5 },
       { id: "h-full", slot: "harness", title: "Codex op Full Access", desc: "Geen sandbox en geen vragen.", detail: "Tien minuten en klaar.", v: 1, s: 5 },
-      { id: "h-cline", slot: "harness", title: "Cline in VS Code met auto-approve", desc: "Vertrouwd, werkt met Qwen. Het model bepaalt zelf welke commando's veilig zijn; alleen voor de rest vraagt hij.", detail: "Geen sandbox.", v: 2, s: 5 },
       // net
       { id: "net-open", slot: "net", title: "Internet open", desc: "Hij kan dingen opzoeken.", detail: "", v: 1, s: 5 },
       { id: "net-sandbox", slot: "net", title: "Netwerk uit voor zijn commando's", desc: "Alleen de verbinding met het model blijft.", detail: "Werkt alleen in een harnas met sandbox.", v: 4, s: 4 },
@@ -278,14 +276,12 @@ window.CASES = [
       (s) => s.look === "look-all" && { type: "insight", text: "Hij weet goed wat hij voorstelt. Maar alles wat hij opent, gaat naar het model, ook pdf's met een verborgen instructie." },
       (s) => s.look === "look-names" && { type: "insight", text: "Wat erin staat, blijft buiten het model, zolang hij zich aan de opdracht houdt: het is een instructie, geen slot. En op naam alleen zijn de voorstellen minder precies." },
       // harnas
-      (s) => s.harness === "h-codex" && { type: "good", text: "Zonder jouw ja verplaatst hij niets, wat er ook in een pdf staat. Wat je goedkeurt, draait buiten de sandbox. Zelf weggooien kan hij alleen in de quarantainemap." },
-      (s) => s.harness === "h-codex-profile" && { type: "good", text: "Zonder jouw ja verplaatst hij niets, en je sleutels en tokens kan hij niet lezen. Wat niet op de lijst staat, wel. Eén keer goed opgesteld, kun je daarna de touwtjes losser laten." },
-      (s) => s.harness === "h-codex-home" && { type: "risk", cap: { v: 3 }, text: "Geen netwerk, maar in je hele home-map kan hij zonder vragen verplaatsen, en ook echt weggooien in plaats van verplaatsen. Dat de quarantainemap gebruikt wordt, is dan een afspraak." },
+      (s) => s.harness === "h-codex-profile" && { type: "good", text: "Zonder jouw ja verplaatst hij niets, wat er ook in een pdf staat, en je sleutels en tokens kan hij niet lezen. Wat je goedkeurt, draait buiten de sandbox. Wat niet in het profiel staat, kan hij wel lezen." },
       (s) => s.harness === "h-codex-auto" && (isQwen(s.model)
         ? { type: "risk", adj: { s: -2 }, text: "Met Qwen werkt auto-review niet: Codex vraagt om een eigen reviewmodel van OpenAI, dat er dan niet is, en weigert elke verplaatsing (getest)." }
-        : { type: "good", text: "Jij hoeft niet elke verplaatsing goed te keuren: een reviewmodel van OpenAI doet het. Dat kan zich vergissen, en wat het goedkeurt, gebeurt." }),
-      (s) => s.harness === "h-full" && { type: "risk", cap: { v: 1 }, text: "Geen sandbox en geen vragen: elke fout of injectie draait meteen, met jouw rechten op je hele laptop. Ook een rm in plaats van een verplaatsing." },
-      (s) => s.harness === "h-cline" && { type: "risk", cap: { v: 2 }, text: "Geen sandbox: commando's draaien als jij. Het model beslist zelf wat veilig is, ook een rm in plaats van een verplaatsing." },
+        : { type: "good", text: "Jij hoeft niet elke verplaatsing goed te keuren: een reviewmodel van OpenAI doet het. Dat kan zich vergissen, en wat het goedkeurt, draait buiten de sandbox." }),
+      (s) => s.harness === "h-codex-home" && { type: "risk", cap: { v: 3 }, text: "Geen netwerk, en je sleutels en tokens zijn afgeschermd (getest). Maar de rest van je home-map kan hij zonder vragen weggooien in plaats van verplaatsen: de quarantainemap is een afspraak." },
+      (s) => s.harness === "h-full" && { type: "risk", cap: { v: 1 }, text: "Geen sandbox en geen vragen: elke fout of injectie draait meteen, met jouw rechten op je hele laptop. Ook een rm in plaats van een verplaatsing, en het profiel geldt niet." },
       // netwerk
       (s) => s.net === "net-open" && { type: "risk", cap: { v: 2 }, text: "Een pdf met een verborgen instructie en een agent met internet: dan kan alles naar buiten." },
       (s) => s.net === "net-sandbox" && !sandboxHarness(s.harness) && s.harness && { type: "risk", cap: { v: 2 }, text: "Dit harnas heeft " + (s.harness === "h-full" ? "op Full Access " : "") + "geen sandbox: het netwerk staat gewoon open." },
