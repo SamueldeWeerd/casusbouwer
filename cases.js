@@ -41,7 +41,7 @@ window.CASES = [
       "Er zitten geen persoonsgegevens en geen gevoelige data in: de code, de issues en de testdata mogen naar Codex Enterprise.",
       "Jullie werken die tickets weg samen met een AI-agent. De agent pakt een issue op, schrijft de fix op een eigen branch en draait de tests. De ontwikkelaar kijkt mee en beslist.",
     ],
-    task: "Hoe werken de agent en de ontwikkelaar samen met GitLab? Kies waar de agent draait, met welke inlog hij bij GitLab komt, hoe het harnas om toestemming vraagt, welk model hij gebruikt, wie er pullt en pusht, en wat er draait als er gepusht wordt.",
+    task: "Hoe werken de agent en de ontwikkelaar samen met GitLab? Kies waar de agent draait, met welke inlog hij bij GitLab komt, hoe het harnas om toestemming vraagt, welk model hij gebruikt, wie er pullt en pusht, wie de MR merget, en wat er draait als er gepusht wordt.",
     facts: [
       "Standaard werkt de agent in de terminal van de ontwikkelaar, op diens laptop: hij schrijft code en draait commando's. Een VM van Rijkswaterstaat of een devcontainer kan ook.",
       "Een devcontainer of een sandboxprofiel kun je opzetten samen met GPT-6.1 in Codex.",
@@ -73,6 +73,7 @@ window.CASES = [
       { id: "model", zone: "model", label: "Welk model?" },
       { id: "devtok", zone: "mens", label: "Waar staat het GitLab-token van de ontwikkelaar zelf?" },
       { id: "git", zone: "mens", label: "Wie pullt en pusht?" },
+      { id: "merge", zone: "mens", label: "Wie merget de MR?" },
       { id: "ci", zone: "gitlab", label: "Wat draait er als er gepusht wordt? (testen, linting, image bouwen)" },
     ],
     blocks: [
@@ -98,6 +99,8 @@ window.CASES = [
       { id: "g-agent", slot: "git", title: "De agent pullt, commit en pusht", desc: "Hij doet alles in git zelf.", detail: "", v: 2, s: 5 },
       { id: "g-pull", slot: "git", title: "De agent pullt en commit, de ontwikkelaar pusht", desc: "Een commit blijft lokaal. Pas bij een push gaat er iets naar GitLab.", detail: "", v: 4, s: 4 },
       { id: "g-dev", slot: "git", title: "Alleen de ontwikkelaar pullt en pusht", desc: "De agent werkt alleen in de bestanden; GitLab doet de ontwikkelaar.", detail: "", v: 5, s: 3.5 },
+      { id: "m-dev", slot: "merge", title: "De ontwikkelaar checkt de diff en merget", desc: "In de MR in GitLab: de code, de tests en .gitlab-ci.yml.", detail: "Eén keer per MR, niet na elke stap.", v: 4, s: 4 },
+      { id: "m-agent", slot: "merge", title: "De agent merget zelf", desc: "Als de pipeline groen is, merget de agent zijn eigen MR.", detail: "Zijn token heeft dan merge-recht nodig.", v: 1, s: 5 },
       // ci
       { id: "ci-open", slot: "ci", title: "De pipeline, op een runner met internet", desc: "Elke push start .gitlab-ci.yml uit die branch, met internet en de CI-variabelen.", detail: "", v: 2, s: 5 },
       { id: "ci-dev", slot: "ci", title: "Niets van de agent: die kan niet bij git", desc: "Alleen de ontwikkelaar pusht, dus de pipeline draait zijn werk.", detail: "", v: 3, s: 5 },
@@ -184,6 +187,11 @@ window.CASES = [
         : s.perm === "h-askall" ? { type: "insight", text: "Afgedwongen door de aandacht van de ontwikkelaar: elk commando komt langs, ook een git push van de agent. Zolang hij blijft lezen." }
         : s.perm === "h-autoreview" ? { type: "insight", text: "De sandbox houdt het netwerk dicht, maar een push gaat nu naar de reviewer, niet naar de ontwikkelaar. Of de reviewer ‘de ontwikkelaar pusht’ kent en elke push weigert, hangt af van een model: dat is geen slot. Geef de agent een token zonder pushrecht, dan dwingt GitLab het af." }
         : sbx(s) && { type: "good", adj: { v: 0.5 }, text: "Afgedwongen: in de sandbox hebben de commando's van de agent geen netwerk. Een git push vraagt hij eerst, en de ontwikkelaar zegt nee en pusht zelf." + (s.git === "g-pull" ? " Pullen en committen vraagt hij ook steeds." : "") }),
+      // mergen
+      (s) => s.merge === "m-agent" && (s.auth === "a-none"
+        ? { type: "insight", text: "Zonder inlog kan de agent niet mergen. Dan merget toch de ontwikkelaar: kies dat dan ook." }
+        : { type: "risk", cap: { v: 2 }, text: "Niemand leest de code voordat hij op main staat. Na de merge draait hij overal, ook in de jobs op main die mogen publiceren of deployen, met de beschermde CI-variabelen: daar helpt de runner zonder internet niet meer. Een groene pipeline zegt niets: de agent schreef de tests zelf. En zijn token moet dan merge-recht hebben" + (s.auth === "a-bot" ? ", precies wat je een eigen token niet geeft." : s.auth === "a-pat" ? ": met het token van de ontwikkelaar kan dat in al diens projecten." : ".") }),
+      (s) => s.merge === "m-dev" && { type: "good", text: "Afgedwongen in GitLab, als je het instelt: bescherm main (‘Allowed to push and merge: No one’, ‘Allowed to merge: Maintainers’) en geef het token van de agent geen merge-recht. Lees in de MR ook de tests en .gitlab-ci.yml. Met Premium kun je goedkeuring verplicht maken, en ‘Prevent approval by author’ aanzetten. Beter nog: een collega die niet in de sessie zat." + (s.git === "g-agent" ? " Zo mag de agent zelf naar zijn branch pushen: main blijft van de mens." : "") },
       // pipeline
       (s) => s.ci === "ci-open" && { type: "risk", cap: { v: s.git === "g-agent" ? 2 : 3 }, text: "Elke push start de pipeline uit de branch zelf, op een runner met internet en met de CI-variabelen. Wat de agent in .gitlab-ci.yml, een test of conftest.py zet, draait daar, buiten elke sandbox, voordat iemand de MR bekijkt." + (s.git && s.git !== "g-agent" ? " Ook als de ontwikkelaar pusht: hij pusht de code van de agent." : "") },
       (s) => s.ci === "ci-dev" && { type: "insight", cap: { v: 2 }, text: "De pipeline draait wat er in de branch staat, niet wie er pusht. Pusht de ontwikkelaar de code van de agent, dan draait die code op de runner, met internet. Ook als de agent zelf nooit bij git kan." },
@@ -198,6 +206,7 @@ window.CASES = [
       "Een afspraak (‘de ontwikkelaar pusht’) is geen slot. Afdwingen doen de rechten van het token in GitLab, of de sandbox van het harnas.",
       "Waar het token van de ontwikkelaar staat, telt mee. Platte tekst in ~/.git-credentials leest de agent gewoon, ook in de sandbox. De sleutelhanger en ‘een tijdje onthouden’ houdt de sandbox dicht (getest op een Mac), zonder sandbox niet: dan geeft git credential fill het token terug. In een VM kan de agent er niet bij.",
       "De code van de agent draait ook als hij zelf niet pusht: in de pipeline, op een runner met internet.",
+      "Mergen is het moment dat telt: daarna draait de code overal, ook in de jobs op main die mogen deployen. Laat dat bij een mens, en geef het token van de agent geen merge-recht.",
       "Een runner zonder internet, met pakketten uit de centrale Artifactory, maakt de pipeline onschadelijk: de code van de agent draait, maar kan niets naar buiten sturen. Dat dwingt het netwerk af, niet het harnas, en niemand hoeft eerst alle tests te lezen.",
       "Een VM van Rijkswaterstaat houdt de agent weg van de laptop en de inlog van de ontwikkelaar. Aan de pipeline verandert hij niets. Een gewone devcontainer stuurt die inlog juist door; een dichtgezette devcontainer is veel makkelijker dan een VM en veel beter dan niks, maar deelt de projectmap met je laptop.",
       "Het harnas telt het zwaarst. Een sandbox met een eigen profiel stel je één keer goed op, samen met GPT-6.1 in een aparte sessie. Dat werkt: verschillende instances van een agent delen niets. Daarna kun je de touwtjes losser laten.",
