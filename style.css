@@ -1,0 +1,468 @@
+/* Kleurafspraak: neutraal voor structuur, accentblauw voor wat je kunt aanklikken en wat je koos,
+   rood/blauw/groen alleen voor feedback (risico, inzicht, sterk punt).
+   Scores gebruiken dezelfde rood/neutraal/groen-banden.
+   De vier scorepunten hebben elk een eigen tint (zeegroen, oranje, roze, oker), links in de uitleg en de beoordeling. */
+:root {
+  --bg: #f4f3f0;
+  --surface: #ffffff;
+  --surface-2: #f7f6f3;
+  --ink: #1d1f24;
+  --ink-2: #4a4e57;
+  --muted: #6b6f78;
+  --line: #e3e0da;
+  --line-strong: #cbc6bc;
+  --accent: #1f5f8b;
+  --accent-ink: #ffffff;
+  --accent-soft: #e8f0f6;
+
+  --risk: #b4332e;
+  --risk-soft: #fbeceb;
+  --insight: #2a6bb0;
+  --insight-soft: #e8f0fa;
+  --good: #2e7d5b;
+  --good-soft: #e7f4ee;
+
+  --paper: #fdfbf5;
+  --dot: #e3ddcf;
+  --sketch: #34302b;
+  --postit: #fff1a8;
+  --gitlab: #e24329;
+  /* Vier scorepunten: eigen tinten, los van de feedbackkleuren. */
+  --ax-v: #1f7a72; --ax-v-soft: #e2f2ef;
+  --ax-e: #c0620f; --ax-e-soft: #fdeedd;
+  --ax-s: #b23f78; --ax-s-soft: #fbe8f1;
+  --ax-k: #7f7212; --ax-k-soft: #f4f1d8;
+
+  --radius: 12px;
+  --shadow: 0 1px 2px rgba(20, 20, 30, .06), 0 4px 14px rgba(20, 20, 30, .05);
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171b;
+    --surface: #1d2025;
+    --surface-2: #23272d;
+    --ink: #eceae6;
+    --ink-2: #c3c6cc;
+    --muted: #9a9fa8;
+    --line: #2f343b;
+    --line-strong: #444a53;
+    --accent: #6aa9d8;
+    --accent-ink: #0d1116;
+    --accent-soft: #1f2d3a;
+    --risk: #ef7d77;
+    --risk-soft: #3a2222;
+    --insight: #7fb2ea;
+    --insight-soft: #1d2b3c;
+    --good: #6fcf9f;
+    --good-soft: #1b3127;
+    --paper: #1c1e22;
+    --dot: #2e3238;
+    --sketch: #e2ded6;
+    --postit: #4a4323;
+    --gitlab: #fc6d26;
+    --ax-v: #5fc4ba; --ax-v-soft: #16302c;
+    --ax-e: #f0a35a; --ax-e-soft: #3a2916;
+    --ax-s: #ee8dbb; --ax-s-soft: #3a1e2c;
+    --ax-k: #d4c65e; --ax-k-soft: #302d15;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 18px rgba(0, 0, 0, .25);
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.5 var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { line-height: 1.25; margin: 0; }
+h2 { font-size: 1.05rem; }
+h3 { font-size: .9rem; color: var(--ink-2); margin: 14px 0 6px; }
+p { margin: 0; }
+b { font-weight: 650; }
+.muted { color: var(--muted); font-weight: 400; }
+.small { font-size: .84rem; }
+
+/* ── Topbalk ── */
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: 16px;
+  padding: 10px 20px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand-mark { width: 30px; height: 30px; flex: none; }
+.brand-mark .doodle { width: 30px; height: 30px; stroke: var(--accent); }
+.brand-title { font-weight: 700; }
+.brand-sub { font-size: .78rem; color: var(--muted); }
+.tabs { display: flex; gap: 6px; flex: 1; justify-content: center; }
+.tab {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 12px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink-2);
+  font: inherit; font-size: .88rem; cursor: pointer; white-space: nowrap;
+}
+.tab:hover { border-color: var(--line-strong); color: var(--ink); }
+.tab.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.tab-nr {
+  display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
+  font-size: .75rem; font-weight: 700; background: color-mix(in srgb, currentColor 16%, transparent);
+}
+
+/* ── Knoppen ── */
+.btn {
+  font: inherit; font-size: .88rem; cursor: pointer;
+  padding: 8px 14px; border-radius: 9px; border: 1px solid transparent;
+}
+.btn.primary { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.btn.primary:disabled { background: var(--surface-2); color: var(--muted); border-color: var(--line); cursor: not-allowed; font-weight: 500; }
+.btn.ghost { background: transparent; border-color: var(--line); color: var(--ink-2); }
+.btn.ghost:hover { border-color: var(--line-strong); color: var(--ink); }
+.btn.tiny { padding: 4px 10px; font-size: .8rem; border-radius: 7px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ── Indeling ── */
+.layout {
+  display: grid; grid-template-columns: minmax(360px, 440px) 1fr; gap: 20px;
+  max-width: 1560px; margin: 0 auto; padding: 20px;
+}
+.work { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px;
+}
+
+/* ── Casus (links): vaste informatievakjes ── */
+.side {
+  position: sticky; top: 76px; max-height: calc(100vh - 96px); overflow-y: auto;
+  display: flex; flex-direction: column; gap: 12px; min-width: 0; padding-bottom: 4px;
+}
+.info {
+  --tone: var(--line-strong); --tone-soft: var(--surface-2);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 14px 16px; font-size: .92rem; line-height: 1.5;
+}
+.info-head { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: .98rem; color: var(--ink); }
+.info p { margin: 0 0 8px; }
+.info p:last-child { margin-bottom: 0; }
+.info-list { margin: 4px 0 8px; padding-left: 18px; }
+.info-list:last-child { margin-bottom: 0; }
+.info-list li { margin: 5px 0; }
+
+/* Kleine schetsjes naast koppen en scorepunten. */
+.doodle.mini { width: 30px; height: 30px; margin: -4px 0; stroke-width: 2.4; }
+.doodle.mini .fill-soft { fill: var(--tone-soft, var(--postit)); }
+
+/* Zo werkt het: vier gekleurde tegels. */
+.info.how { background: var(--surface-2); box-shadow: none; font-size: .86rem; }
+.ax-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0 10px; }
+.ax-tile {
+  display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 10px;
+  background: var(--tone-soft); border: 1px solid color-mix(in srgb, var(--tone) 30%, transparent);
+}
+.ax-tile b { color: var(--tone); display: block; line-height: 1.2; }
+.ax-tile small { display: block; color: var(--ink-2); font-size: .74rem; line-height: 1.2; }
+.ax-tile .doodle.mini .fill-soft { fill: var(--surface); }
+.ax-v { --tone: var(--ax-v); --tone-soft: var(--ax-v-soft); }
+.ax-e { --tone: var(--ax-e); --tone-soft: var(--ax-e-soft); }
+.ax-s { --tone: var(--ax-s); --tone-soft: var(--ax-s-soft); }
+.ax-k { --tone: var(--ax-k); --tone-soft: var(--ax-k-soft); }
+
+/* Rondekop: stippelpapier zoals het bord, groot rondenummer en de tekening van de ronde. */
+.case-banner {
+  display: flex; align-items: center; gap: 12px; padding: 12px 10px 12px 14px;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background-color: var(--paper);
+  background-image: radial-gradient(var(--dot) 1.1px, transparent 1.3px); background-size: 16px 16px;
+}
+.round-nr {
+  flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  background: var(--accent); color: var(--accent-ink); font-weight: 800; font-size: 1.3rem;
+  box-shadow: 2px 3px 0 color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.case-banner-text { flex: 1; min-width: 0; }
+.case-label { display: block; font-size: .74rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.case-banner h2 { font-size: 1.15rem; margin: 0; }
+.case-banner > .doodle { width: 76px; height: 60px; margin: -6px 0; }
+
+/* De casus, de opdracht, de feiten: elk een eigen kleur. */
+.info.story { border-left: 4px solid var(--ax-v); --tone-soft: var(--ax-v-soft); }
+.info.task { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 35%, transparent); --tone-soft: var(--surface); }
+.info.task p { font-weight: 600; color: var(--ink); }
+.info.facts {
+  position: relative; background: var(--postit); border-color: color-mix(in srgb, var(--postit) 70%, var(--sketch));
+  --tone-soft: var(--surface); box-shadow: 2px 4px 0 rgba(0, 0, 0, .06), var(--shadow);
+}
+.info.facts::before { /* plakbandje */
+  content: ""; position: absolute; top: -8px; left: 50%; width: 64px; height: 16px; transform: translateX(-50%) rotate(-3deg);
+  background: color-mix(in srgb, var(--surface) 70%, transparent); border: 1px solid var(--line); border-radius: 2px;
+}
+.info-list.dots { list-style: none; padding-left: 0; }
+.info-list.dots li { position: relative; padding-left: 18px; }
+.info-list.dots li::before {
+  content: ""; position: absolute; left: 3px; top: .55em; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--sketch); opacity: .7;
+}
+.info.carry { --tone-soft: var(--ax-k-soft); border-left: 4px solid var(--ax-k); }
+details.info summary { cursor: pointer; font-weight: 650; }
+details.info summary.info-head { margin: 0; }
+details.info[open] summary { margin-bottom: 6px; }
+.info.known { --tone-soft: var(--good-soft); border-left: 4px solid var(--good); }
+.info-list.checks { list-style: none; padding-left: 0; }
+.info-list.checks li { position: relative; padding-left: 22px; }
+.info-list.checks li::before { content: "✓"; position: absolute; left: 2px; top: 0; color: var(--good); font-weight: 800; }
+
+/* Beoordeling: gekleurde kaartjes per soort bevinding. */
+.info.eval { border-color: var(--line-strong); --tone-soft: var(--postit); }
+.info.eval .scorecard { margin-bottom: 10px; }
+.f-group {
+  margin-top: 10px; padding: 8px 12px 6px; border-radius: 10px;
+  background: var(--tone-soft); border-left: 4px solid var(--tone);
+}
+.f-group .info-list { padding-left: 16px; }
+.f-group .doodle.mini .fill-soft { fill: var(--surface); }
+.f-head { display: flex; align-items: center; gap: 6px; margin: 0 0 2px; font-size: .88rem; color: var(--tone); }
+.f-group.f-risk { --tone: var(--risk); --tone-soft: var(--risk-soft); }
+.f-group.f-insight { --tone: var(--insight); --tone-soft: var(--insight-soft); }
+.f-group.f-good { --tone: var(--good); --tone-soft: var(--good-soft); }
+.ax-chip {
+  display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px 2px 4px; border-radius: 999px;
+  background: var(--tone-soft); color: var(--ink-2);
+}
+.ax-chip .doodle.mini { width: 22px; height: 22px; margin: 0; }
+.ax-chip .doodle.mini .fill-soft { fill: var(--surface); }
+.pill { font-size: .7rem; font-weight: 650; padding: 1px 7px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+
+/* Scorebanden: laag = rood, midden = neutraal, hoog = groen. */
+b.band-low { color: var(--risk); }
+b.band-high { color: var(--good); }
+
+
+/* ── Scorekaart ── */
+.scorecard { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.score-top { display: flex; justify-content: space-between; align-items: baseline; font-weight: 650; align-self: stretch; }
+.total { padding: 2px 10px; border-radius: 9px; background: var(--surface-2); border: 1px solid var(--line); color: var(--ink); font-variant-numeric: tabular-nums; }
+.total b { font-size: 1.3rem; }
+.score-line { display: flex; flex-wrap: wrap; gap: 6px 8px; font-size: .86rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.calc { align-self: stretch; }
+.calc summary { cursor: pointer; font-size: .84rem; color: var(--accent); font-weight: 600; }
+.calc ul { padding-left: 16px; margin: 8px 0; font-size: .82rem; }
+.calc li { margin: 3px 0; }
+.calc table { width: 100%; border-collapse: collapse; font-size: .76rem; margin: 6px 0; }
+.calc th, .calc td { text-align: left; padding: 3px 5px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.calc th:nth-child(n+3), .calc td:nth-child(n+3) { text-align: center; width: 26px; font-variant-numeric: tabular-nums; }
+.calc tr.ignored td { color: var(--muted); }
+
+/* ── Actiebalk boven het bord ── */
+.board-bar {
+  position: sticky; top: 76px; z-index: 5;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 10px 14px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+}
+.bar-progress { font-size: .9rem; color: var(--ink-2); }
+.bar-progress b { color: var(--ink); }
+
+/* ── Bord ── */
+/* Tekst en vakken blijven strak en leesbaar; alleen de tekeningen (zones, pijlen) zijn geschetst. */
+.board {
+  background-color: var(--paper);
+  background-image: radial-gradient(var(--dot) 1.1px, transparent 1.3px);
+  background-size: 20px 20px;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 18px;
+}
+.board-bottom { display: grid; margin-top: 0; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+
+.zone { border-radius: var(--radius); padding: 12px 14px 14px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.zone-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.zone-label { font-size: 1rem; font-weight: 700; color: var(--ink); margin: 0; }
+
+/* Schetsjes: bibberige lijnen via het SVG-filter #rough (in index.html). */
+.doodle { fill: none; stroke: var(--sketch); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; filter: url(#rough); flex: none; }
+.zone-head .doodle { width: 96px; height: 76px; margin: -8px 0 -8px -6px; }
+.doodle .fill-soft { fill: var(--postit); }
+.doodle .accent { stroke: var(--good); }
+.doodle .gitlab { stroke: var(--gitlab); }
+.doodle .gitlab .fill-brand { fill: color-mix(in srgb, var(--gitlab) 18%, transparent); }
+
+.zone-slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(210px, 100%), 1fr)); gap: 10px; }
+
+.flow { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: .8rem; }
+.flow-down { height: 56px; }
+.flow-down .doodle { width: 22px; height: 46px; }
+
+/* Smal bord (telefoon, of een smal venster naast het gesprek): alles onder elkaar. */
+.work { container-type: inline-size; }
+@container (max-width: 760px) {
+  .board { padding: 12px; }
+  .zone-head .doodle { width: 76px; height: 60px; }
+}
+
+/* Een vak is één knop: leeg (gestippeld) of gekozen (accentrand links). */
+.slot {
+  width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer;
+  display: flex; flex-direction: column; gap: 3px; min-height: 76px; padding: 10px 12px;
+  border-radius: 10px; transition: border-color .12s, background .12s, box-shadow .12s;
+}
+.slot.empty { border: 1.5px dashed var(--line-strong); background: transparent; }
+.slot.empty:hover { border-color: var(--accent); background: var(--accent-soft); }
+.slot.filled { border: 1px solid var(--line); border-left: 4px solid var(--accent); background: var(--surface-2); }
+.slot.filled:hover { box-shadow: var(--shadow); border-color: var(--line-strong); border-left-color: var(--accent); }
+.slot-label { font-size: .84rem; font-weight: 650; color: var(--ink); }
+.slot.filled .slot-label { font-size: .76rem; font-weight: 600; color: var(--muted); }
+.slot-cta { margin-top: auto; font-size: .86rem; color: var(--accent); font-weight: 600; }
+.slot-title { font-weight: 650; font-size: .92rem; }
+.slot-desc { font-size: .84rem; color: var(--ink-2); }
+.slot-badges:empty { display: none; }
+.slot-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+
+.badge { font-size: .7rem; font-weight: 650; padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
+.badge.from { background: var(--accent-soft); color: var(--accent); }
+.badge.current { background: var(--accent); color: var(--accent-ink); }
+
+/* ── Kiezer (sheet) ── */
+.sheet-backdrop { position: fixed; inset: 0; background: rgba(10, 12, 16, .4); z-index: 40; }
+.sheet {
+  position: fixed; z-index: 41; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: min(580px, calc(100vw - 32px)); max-height: min(82vh, 760px); overflow: auto;
+  background: var(--surface); border-radius: 14px; box-shadow: 0 20px 60px rgba(0, 0, 0, .3); padding: 16px;
+}
+.sheet-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 10px; }
+.sheet-head p { margin-top: 2px; }
+.sheet-list { display: flex; flex-direction: column; gap: 8px; }
+.option {
+  width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer;
+  display: flex; flex-direction: column; gap: 2px; padding: 10px 12px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  transition: border-color .12s, background .12s;
+}
+.option:hover { border-color: var(--accent); }
+.option.current { border-color: var(--accent); background: var(--accent-soft); }
+.option-head { display: flex; align-items: flex-start; gap: 6px; flex-wrap: wrap; }
+.option-title { font-weight: 650; font-size: .92rem; margin-right: auto; }
+.option-desc { font-size: .86rem; color: var(--ink-2); }
+.option-detail { font-size: .8rem; color: var(--muted); }
+
+.toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 50;
+  background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 999px; font-size: .88rem; box-shadow: var(--shadow);
+}
+
+[hidden] { display: none !important; }
+
+/* ── Facilitator (alleen via #facilitator) ── */
+.facil { border: 1.5px dashed var(--accent); box-shadow: none; }
+.facil-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.facil-tools { display: flex; gap: 6px; }
+.facil ul { margin: 0; padding-left: 18px; font-size: .9rem; }
+.facil li { margin: 4px 0; }
+.facil p { font-size: .9rem; }
+
+.mobile-nav { display: none; }
+
+/* ── Smal scherm (telefoon) ── */
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; padding: 12px 12px 76px; }
+  .side { position: static; max-height: none; overflow: visible; }
+  .case-banner > .doodle { width: 60px; height: 48px; }
+  body.view-case .work { display: none; }
+  body.view-board .side { display: none; }
+  .board-bar { top: calc(var(--top-h, 60px) + 8px); }
+  .topbar { padding: 8px 12px; gap: 10px; }
+  .brand-title, .brand-sub { display: none; }
+  .tabs { justify-content: flex-start; }
+  .tab:not(.active) .tab-title { display: none; }
+  .tab:not(.active) { padding: 7px 9px; }
+  .sheet { top: auto; bottom: 0; left: 0; right: 0; transform: none; width: 100%; border-radius: 16px 16px 0 0; max-height: 85vh; }
+  .mobile-nav {
+    display: grid; grid-template-columns: 1fr 1fr; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    background: var(--surface); border-top: 1px solid var(--line); padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); gap: 8px;
+  }
+  .mobile-nav button {
+    font: inherit; font-size: .9rem; padding: 10px; border-radius: 10px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink-2);
+  }
+  .mobile-nav button.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+}
+
+/* Korte uitleg onder een zone, bijvoorbeeld wat de agent doet. */
+.zone-note { margin: 0 0 10px; font-size: .85rem; line-height: 1.4; color: var(--ink-2); }
+
+/* Lagen om de agent: de VM om het harnas, het harnas om de agent. Elke laag een eigen rand en tint. */
+.nest { display: flex; flex-direction: column; }
+.nest-inner { margin-top: 12px; flex: 1; display: flex; flex-direction: column; }
+.nest-inner > .zone { flex: 1; }
+.zone-vm.nest { border: 2px dashed var(--line-strong); background: var(--surface-2); box-shadow: none; }
+.zone-harness.nest { border: 2px solid var(--line-strong); background: var(--paper); box-shadow: none; }
+.nest .zone-agent { box-shadow: var(--shadow); }
+.zone-model .zone-slots { grid-template-columns: repeat(auto-fill, minmax(min(210px, 100%), 1fr)); }
+
+/* Het onderwerp van de ronde boven, agent en mens eronder, pijlen tussen alle drie. */
+.board-tri {
+  display: grid; grid-template-columns: 1fr 120px 1fr; align-items: stretch;
+  grid-template-areas: "top top top" "upa . upm" "agent mid mens";
+}
+/* Met modellen: de agent loopt door over twee rijen; rechts de mens (zo hoog als nodig) en daaronder de modellen. */
+.board-tri.with-models {
+  grid-template-rows: auto auto auto 1fr;
+  grid-template-areas: "top top top" "upa . upm" "agent mid mens" "agent mdl models";
+}
+.with-models .tri-agent { align-self: stretch; }
+.with-models .tri-mens { align-self: start; margin-bottom: 16px; }
+.tri-mdl { grid-area: mdl; display: flex; align-items: flex-start; padding-top: 28px; }
+.tri-dn { grid-area: dn; display: none; }
+.tri-models { grid-area: models; align-self: start; display: flex; }
+.tri-models > .zone { flex: 1; }
+.flow-right { flex-direction: column; width: 100%; padding: 0 6px; text-align: center; gap: 2px; }
+.flow-right .doodle { width: 92px; height: 22px; }
+.tri-top { grid-area: top; }
+.tri-up-agent { grid-area: upa; }
+.tri-up-mens { grid-area: upm; }
+.tri-agent { grid-area: agent; display: flex; }
+.tri-mens { grid-area: mens; display: flex; }
+.tri-agent > .zone, .tri-mens > .zone { flex: 1; }
+.tri-mid { grid-area: mid; display: flex; align-items: center; }
+.flow-both-v { height: 76px; }
+.flow-both-v .doodle { width: 22px; height: 62px; }
+.flow-both-h { flex-direction: column; width: 100%; padding: 0 6px; text-align: center; gap: 2px; }
+.flow-both-h .doodle { width: 92px; height: 22px; }
+.sketch-wrap { margin: -4px 0 12px; padding: 8px 10px 4px; border-radius: 10px; background: var(--surface-2); border: 1px dashed var(--line-strong); }
+.sketch { --hot: var(--gitlab); display: block; width: 100%; height: auto; max-height: 170px; }
+.sketch .sk { fill: none; stroke: var(--sketch); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; filter: url(#rough); }
+.sketch .card { fill: var(--postit); }
+.sketch .card.hot, .sketch .dot.hot { fill: color-mix(in srgb, var(--hot) 30%, var(--surface)); stroke: var(--hot); }
+.sketch .dot { fill: var(--surface); }
+.sketch .branch { stroke: var(--hot); stroke-dasharray: 5 4; }
+.sketch .push { stroke: var(--hot); stroke-width: 2.4; }
+.sketch-laptop, .sketch-data { --hot: var(--risk); }
+.sketch .hot-line { stroke: var(--hot); stroke-width: 3; }
+.sketch .wall { stroke-dasharray: 6 5; }
+.sketch .globe { fill: var(--accent-soft); }
+.sketch .sk-text text { fill: var(--ink); font: 650 13px var(--font); }
+.sketch .sk-text text.sm { fill: var(--ink-2); font-weight: 500; font-size: 11px; }
+@container (max-width: 760px) {
+  .board-tri { grid-template-columns: 1fr; grid-template-areas: "top" "upa" "agent" "mid" "mens"; }
+  .board-tri.with-models { grid-template-rows: none; grid-template-areas: "top" "upa" "agent" "mid" "mens" "dn" "models"; }
+  .with-models .tri-mens { margin-bottom: 0; }
+  .tri-mdl { display: none; }
+  .tri-dn { display: block; }
+  .tri-up-mens { display: none; }
+  .tri-mid { justify-content: center; }
+  .flow-both-h { width: auto; height: 76px; flex-direction: row; }
+  .flow-both-h .doodle { width: 62px; height: 22px; transform: rotate(90deg); }
+}
+
+/* Sidequest: een optioneel vak, in een andere kleur. */
+.slot.optional.empty { border-color: var(--ax-k); background: var(--ax-k-soft); }
+.slot.optional.filled { border-left-color: var(--ax-k); }
+.sq-tag { align-self: flex-start; font-size: .68rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--ax-k); border: 1px solid var(--ax-k); border-radius: 999px; padding: 1px 7px; }
+.sketch-laptop .push, .sketch-data .push { stroke: var(--accent); }

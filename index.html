@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Casusbouwer agents</title>
+  <link rel="stylesheet" href="style.css?v=19">
+</head>
+<body class="view-case">
+  <!-- Maakt lijnen een beetje bibberig, alsof ze met de hand getekend zijn. -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/>
+      <feDisplacementMap in="SourceGraphic" scale="2.6"/>
+    </filter>
+  </svg>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"><svg class="doodle" viewBox="0 0 32 32"><path d="M6 26 l3 -8 l14 -14 l5 5 l-14 14 z"/><path d="M9 18 l5 5"/><path d="M20 7 l5 5"/><path d="M6 26 l3 -1"/></svg></span>
+      <div>
+        <div class="brand-title">Casusbouwer</div>
+        <div class="brand-sub">Veilig én efficiënt werken met agents</div>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs" aria-label="Rondes"></nav>
+  </header>
+
+  <main class="layout">
+    <aside class="side" id="side" aria-label="Casus" aria-live="polite"></aside>
+
+    <section class="work" id="work" aria-label="Opstelling">
+      <div class="board-bar" id="board-bar" hidden></div>
+      <section class="board" id="board"></section>
+    </section>
+  </main>
+
+  <nav class="mobile-nav" aria-label="Weergave">
+    <button type="button" data-view="case" class="active">Casus</button>
+    <button type="button" data-view="board">Opstelling <span id="fill-count"></span></button>
+  </nav>
+
+  <div class="sheet-backdrop" id="sheet-backdrop" hidden></div>
+  <section class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheet-title"></section>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script src="cases.js?v=58"></script>
+  <script src="app.js?v=34"></script>
+</body>
+</html>
