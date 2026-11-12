@@ -357,11 +357,8 @@ window.CASES = [
       { id: "h-cline", slot: "harness", title: "Cline in VS Code met auto-approve", desc: "Vertrouwd. Het model bepaalt zelf welke commando's veilig zijn.", detail: "Geen sandbox.", v: 2, s: 5 },
       // net
       { id: "net-open", slot: "net", title: "Internet open", desc: "pip, documentatie, alles werkt.", detail: "", v: 1, s: 5 },
-      { id: "net-sandbox", slot: "net", title: "Netwerk uit in de sandbox van het harnas", desc: "Commando's krijgen geen netwerk; de verbinding met het model blijft.", detail: "Werkt alleen in een harnas met sandbox.", v: 3, s: 4 },
-      { id: "net-ask", slot: "net", title: "Hij vraagt het als hij internet nodig heeft", desc: "Per keer goedkeuren.", detail: "", v: 3, s: 3 },
-      { id: "net-env-proxy", slot: "net", title: "Proxy met allowlist, via een instelling", desc: "Alleen het model en documentatie.", detail: "", v: 2, s: 3.5 },
-      { id: "net-allowlist", slot: "net", title: "Firewall: alleen de proxy mag naar buiten", desc: "Afgedwongen in de VM; de proxy laat alleen documentatie door.", detail: "", v: 4, s: 3 },
       { id: "net-closed", slot: "net", title: "Geen internet, alleen het model", desc: "Het strengste wat kan. Documentatie opzoeken kan niet.", detail: "", v: 5, s: 2.5 },
+      { id: "net-allowlist", slot: "net", title: "Allowlist, en daarbuiten vraagt hij om toestemming", desc: "Afgedwongen met een proxy of firewall.", detail: "Op de lijst: het model en documentatie.", v: 4, s: 3.5 },
       // model
       { id: "qwen-werk", slot: "model", title: "Qwen op de servers van Rijkswaterstaat", desc: "Data blijft bij Rijkswaterstaat. Bereikbaar op kantoor en vanuit de remote VM.", detail: "Minder slim en trager. Een Chinees model.", v: 4, s: 3.5 },
       { id: "codex", slot: "model", title: "GPT-modellen via Azure OpenAI (cloud van Microsoft)", desc: "Het slimst en het snelst.", detail: "Wat de agent leest, gaat naar de cloud van Microsoft.", v: 2, s: 5 },
@@ -401,16 +398,17 @@ window.CASES = [
         : { type: "risk", adj: { s: -2 }, text: "Met Qwen werkt auto-review niet: Codex vraagt om een eigen reviewmodel van OpenAI, dat er dan niet is, en weigert alles buiten de sandbox (getest)." }),
       // netwerk
       (s) => s.net === "net-open" && { type: "risk", cap: { v: 2 }, text: "Gevoelige data, tekst van buiten en een weg naar buiten: één melding hoeft alleen nog om een upload te vragen." },
-      (s) => onLaptop(s) && (openShell(s) ? s.net === "net-env-proxy" : ["net-allowlist", "net-closed", "net-env-proxy"].includes(s.net)) && { type: "risk", cap: { v: 2 }, text: "Netwerkregels van een VM gelden niet op de laptop: die heeft gewoon internet." },
-      (s) => s.net === "net-sandbox" && s.harness && !sandboxHarness(s.harness) && { type: "risk", cap: { v: 2 }, text: "Dit harnas heeft " + (s.harness === "h-full" ? "op Full Access " : "") + "geen sandbox: het netwerk staat gewoon open." },
-      (s) => s.net === "net-ask" && { type: "insight", adj: { v: -0.5 }, text: "Onder deadline-druk klik je binnen het uur ‘niet meer vragen’. Dan staat het internet open." },
-      (s) => s.net === "net-env-proxy" && walled(s) && { type: "insight", cap: { v: 2 }, text: "Een instelling is een verzoek, geen slot: een programma dat hem negeert, gaat direct naar buiten." },
-      (s) => s.net === "net-allowlist" && walled(s) && { type: "good", adj: { v: 0.5 }, text: "Afgedwongen: alleen de proxy mag naar buiten, en die alleen naar de lijst." + (inVm(s) ? "" : " Op de laptop doet OpenShell dat, buiten de agent om.") },
+      (s) => s.net && s.net !== "net-open" && onLaptop(s) && !openShell(s) && (sandboxHarness(s.harness)
+        ? (s.net === "net-allowlist"
+          ? { type: "insight", cap: { v: 3 }, text: "Een proxy of firewall alleen voor de agent heb je op de laptop niet. De sandbox van het harnas houdt het netwerk dicht en vraagt het, maar wat zij goedkeurt, gaat zonder lijst naar buiten." }
+          : { type: "insight", text: "De sandbox van het harnas houdt het netwerk voor commando's dicht. Een firewall heb je op de laptop niet." })
+        : s.harness && { type: "risk", cap: { v: 2 }, text: "Cline heeft geen sandbox, en een proxy of firewall alleen voor de agent heb je op de laptop niet: het netwerk staat gewoon open." }),
+      (s) => s.net === "net-allowlist" && walled(s) && { type: "good", adj: { v: 0.5 }, text: "Afgedwongen: alleen wat op de lijst staat, komt erdoor." + (inVm(s) ? "" : " Op de laptop doet OpenShell dat, buiten de agent om.") + " Wil hij ergens anders heen, dan beslist zij." },
       (s) => s.net === "net-closed" && walled(s) && s.model !== "codex" && { type: "good", adj: { v: 0.5, s: -0.5 }, text: "Er is geen weg naar buiten. Documentatie opzoeken kan niet." },
       (s) => s.net === "net-closed" && s.model === "codex" && { type: "risk", adj: { s: -2 }, text: "Azure OpenAI draait in de cloud: zonder weg naar Microsoft werkt de agent niet. Met die weg gaat alles wat hij leest naar buiten." },
-      (s) => isQwen(s.model) && (s.net === "net-open" || (onLaptop(s) && !openShell(s) && s.net !== "net-sandbox") || (s.net === "net-sandbox" && s.harness && !sandboxHarness(s.harness))
+      (s) => isQwen(s.model) && s.net && (s.harness || inVm(s) || s.net === "net-open") && (s.net === "net-open" || !(walled(s) || sandboxHarness(s.harness))
         ? { type: "risk", text: qwenNews + " Hier zou zo'n upload slagen, bij elk model. Een ander model kiezen verandert dat niet." }
-        : (["net-allowlist", "net-closed"].includes(s.net) || (s.net === "net-sandbox" && sandboxHarness(s.harness))) && { type: "good", text: qwenNews + " Hier loopt zo'n poging dood." }),
+        : { type: "good", text: qwenNews + " Hier loopt zo'n poging dood." }),
       // model en data
       (s) => s.model === "codex" && ["raw", "agent-pseudo"].includes(s.data) && { type: "risk", cap: { v: 1 }, text: "Zwakke plekken van tunnels en bruggen en namen van bestuurders gaan naar de cloud van Microsoft, een Amerikaanse leverancier. Ook als die in de EU verwerkt, raadt het cloudbeleid van het Rijk dat af voor vitale infrastructuur (§4.3)." },
       (s) => s.model === "codex" && s.data === "sample" && { type: "insight", cap: { v: 3 }, text: "Opgeschoonde vrije tekst blijft lastig: namen staan midden in zinnen, en een tunnel is herkenbaar aan zijn ligging." },
