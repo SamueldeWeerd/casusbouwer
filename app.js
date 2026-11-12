@@ -261,7 +261,6 @@
   function badges(b, carriedFrom) {
     return [
       carriedFrom ? `<span class="badge from">Uit ${esc(labelOf(carriedFrom).toLowerCase())}</span>` : "",
-      b.from ? `<span class="badge from">Nieuw sinds ${esc(labelOf(b.from).toLowerCase())}</span>` : "",
     ].join("");
   }
 

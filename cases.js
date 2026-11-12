@@ -3,7 +3,7 @@
 // Het bord nest de zones: vm (als die er is) om harness (als die er is) om agent. model staat los daarbuiten.
 // story/task/facts: de casusbeschrijving links (de casus, de opdracht, goed om te weten).
 // Scores per blok: v = veiligheid, s = eenvoud (makkelijk werken, weinig op de agent letten), elk 1–5. Totaal = 1,5 × v + s.
-// from: id van een eerdere ronde waar dit blok vandaan komt ("Nieuw sinds ronde N").
+// from: id van een eerdere ronde waar dit blok op lijkt (alleen voor het draaiboek; de app toont het niet).
 // selfEval: groepjes beoordelen hun opstelling zelf.
 // carry: [[ronde-id, vak-id], …] vult een leeg vak met de keuze uit een eerdere ronde, als dat blok hier bestaat.
 // Regels krijgen (s): s[vak] = gekozen blok-id.
